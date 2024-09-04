@@ -1,5 +1,6 @@
 {
   "Lua.diagnostics.globals": [
+    "Settings",
     "TradeLoggerDB",
     "SlashCmdList",
     "InterfaceOptions_AddCategory",

@@ -9,7 +9,8 @@ Locales\zhCN.lua
 # Locales\zhTW.lua
 
 Logger.lua
-Options.lua
 Core.lua
+Options.lua
+UI.lua
 
 Features\MailMoneyChange.lua

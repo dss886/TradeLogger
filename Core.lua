@@ -1,8 +1,5 @@
 local AddonName, Addon = ...
 
-local Logger = Addon.Logger;
-local Options = Addon.Options;
-
 ----------------------------------------
 --            注册和处理事件           --
 ----------------------------------------
@@ -34,7 +31,6 @@ function EventBus.UnregisterCallback(event, callback)
 end
 
 function EventBus.TriggerCallback(event, ...)
-    -- Addon.Utils.Debug("EventBus.TriggerCallback: " .. event)
     local callbacks = CallbackCenter[event];
     if callbacks ~= nil then
         for index = #callbacks, 1, -1 do
@@ -61,7 +57,6 @@ EventFrame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_HIDE")
 local DEFAULT_CONFIG = {
     ["version"] = 1,
     ["config"] = {
-        ["logLevel"] = Logger.LEVEL.DEBUG,
         ["enableMailMoneyChange"] = true,
     },
 }
@@ -71,11 +66,9 @@ EventBus.RegisterCallback("ADDON_LOADED", function(name)
 		return
 	end
     
-    if TradeLoggerDB.version == nil or TradeLoggerDB.version < DEFAULT_CONFIG.version then
+    if TradeLoggerDB.version == nil then
         TradeLoggerDB = DEFAULT_CONFIG;
     end
-
-    Options.init();
 end)
 
 ----------------------------------------

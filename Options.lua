@@ -1,17 +1,21 @@
 local AddonName, Addon = ...
 
 local L = Addon.L;
+local Logger = Addon.Logger;
+local EventBus = Addon.EventBus;
+
+local Options;
 
 ----------------------------------------
 --            添加SLASH命令           --
 ----------------------------------------
 
-local function addSlashCmd(options)
+local function addSlashCmd()
     SLASH_TRADELOGGER1 = "/tradeLogger"
     SLASH_TRADELOGGER2 = "/tl"
 
     SlashCmdList["TRADELOGGER"] = function()
-        InterfaceOptionsFrame_OpenToCategory(options)
+        InterfaceOptionsFrame_OpenToCategory(Options)
     end
 end
 
@@ -19,13 +23,13 @@ end
 --             插件设置页面            --
 ----------------------------------------
 
-local function init()
-    local config = TradeLoggerDB;
-    local options = CreateFrame("FRAME");
-    options.name = L["AddonName"];
-    InterfaceOptions_AddCategory(options)
+local function initOptions()
+    local config = TradeLoggerDB.config;
+    Options = CreateFrame("FRAME");
+    Options.name = AddonName;
+    InterfaceOptions_AddCategory(Options)
 
-    local enableMailMoneyChange = CreateFrame("CheckButton", AddonName .. "enableMailMoneyChange", options,
+    local enableMailMoneyChange = CreateFrame("CheckButton", AddonName .. "enableMailMoneyChange", Options,
         "InterfaceOptionsCheckButtonTemplate")
     enableMailMoneyChange:SetPoint("TOPLEFT", 16, -16)
     enableMailMoneyChange.Text:SetText(L['enableMailMoneyChange'])
@@ -33,14 +37,15 @@ local function init()
     enableMailMoneyChange:SetScript("OnClick", function()
         config.enableMailMoneyChange = not config.enableMailMoneyChange;
     end)
-
-    addSlashCmd(options)
 end
 
 ----------------------------------------
---        对其他模块暴露的接口         --
+--               初始化               --
 ----------------------------------------
 
-Addon.Options = {
-    init = init;
-};
+EventBus.RegisterCallback("ADDON_LOADED", function(name)
+    if name == AddonName then
+        initOptions()
+        addSlashCmd()
+	end
+end)
