@@ -24,11 +24,15 @@ local function OnMailClosed()
     end
 end
 
-EventBus.RegisterCallback("MAIL_SHOW", OnMailShow);
-EventBus.RegisterCallback("MAIL_CLOSED", OnMailClosed);
-EventBus.RegisterCallback("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", function(type)
-    -- type 17 is mail box
+-- 从某个版本后邮箱关闭时不再触发MAIL_CLOSED事件，
+-- 需要兼容一下PLAYER_INTERACTION_MANAGER_FRAME_HIDE事件
+-- type=17 是 mailbox
+local function OnPlayerFrameHide(type)
     if type == 17 then
         OnMailClosed()
     end
-end);
+end
+
+EventBus.RegisterCallback("MAIL_SHOW", OnMailShow);
+EventBus.RegisterCallback("MAIL_CLOSED", OnMailClosed);
+EventBus.RegisterCallback("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", OnPlayerFrameHide);

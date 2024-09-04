@@ -2,8 +2,37 @@ local AddonName, Addon = ...
 
 local L = Addon.L;
 local Logger = Addon.Logger;
-local Options = Addon.Options;
 local EventBus = Addon.EventBus;
+
+----------------------------------------
+--        一些数据操作用的工具函数      --
+----------------------------------------
+
+local function getRecentTrade()
+    local tradeRecord = TradeLoggerDB.tradeRecord
+    local recentTrade = {}
+    local now = time()
+    for i = #tradeRecord, 1, -1 do
+        local trade = tradeRecord[i]
+        if now - trade.timestamp <= 24 * 60 * 60 then
+            table.insert(recentTrade, trade)
+        else
+            break
+        end
+    end
+    return recentTrade
+end
+
+local function addTradeListToToolTip(tooltip, tradeList)
+    local count = math.min(#tradeList, 10)
+    for i = 1, count do
+        local trade = tradeList[i]
+        local timeStr = date("%Y-%m-%d %H:%M:%S", trade.timestamp)
+        local left = format("|cFFFFFFFF%s", timeStr)
+        local right = format("|cFFFFFFFF%s", trade.targetName)
+        tooltip:AddDoubleLine(left, right)
+    end
+end
 
 ----------------------------------------
 --          LDB配置（如果可用）        --
@@ -23,7 +52,11 @@ local function initLDB()
         if not plugin then return end
 
         function plugin.OnTooltipShow(tooltip)
-            tooltip:AddDoubleLine(L["ldb_tooltip_recent_trade_title"], L["ldb_tooltip_recent_trade_none"])
+            local recentTrade = getRecentTrade()
+            tooltip:AddDoubleLine(L["ldb_tooltip_recent_trade_title"], #recentTrade > 0 
+                and format(L["ldb_tooltip_recent_trade_count"], #recentTrade) 
+                or L["ldb_tooltip_recent_trade_none"])
+            addTradeListToToolTip(tooltip, recentTrade)
             tooltip:AddLine(" ")
             tooltip:AddLine(L["ldb_tooltip_desc1"])
             tooltip:AddLine(L["ldb_tooltip_desc2"])

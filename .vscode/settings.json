@@ -3,6 +3,7 @@
     "Settings",
     "TradeLoggerDB",
     "SlashCmdList",
+    "STANDARD_TEXT_FONT",
     "InterfaceOptions_AddCategory",
     "InterfaceOptionsFrame_OpenToCategory"
   ]

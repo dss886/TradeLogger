@@ -23,20 +23,36 @@ end
 --             插件设置页面            --
 ----------------------------------------
 
-local function initOptions()
+local function createCheckbox(key)
     local config = TradeLoggerDB.config;
+    local checkbox = CreateFrame("CheckButton", AddonName..key, Options, "InterfaceOptionsCheckButtonTemplate")
+
+    checkbox.Text:SetText(L[key])
+    checkbox:SetChecked(config[key])
+    checkbox:SetScript("OnClick", function()
+        config[key] = not config[key];
+    end)
+    return checkbox
+end
+
+
+local function initOptions()
     Options = CreateFrame("FRAME");
     Options.name = AddonName;
     InterfaceOptions_AddCategory(Options)
 
-    local enableMailMoneyChange = CreateFrame("CheckButton", AddonName .. "enableMailMoneyChange", Options,
-        "InterfaceOptionsCheckButtonTemplate")
-    enableMailMoneyChange:SetPoint("TOPLEFT", 16, -16)
-    enableMailMoneyChange.Text:SetText(L['enableMailMoneyChange'])
-    enableMailMoneyChange:SetChecked(config.enableMailMoneyChange)
-    enableMailMoneyChange:SetScript("OnClick", function()
-        config.enableMailMoneyChange = not config.enableMailMoneyChange;
-    end)
+    local title = Options:CreateFontString(AddonName.."Title", "ARTWORK", "GameFontNormal")
+	title:SetText(AddonName)
+    title:SetFont(STANDARD_TEXT_FONT, 18, "")
+
+    local enableTradeRecord = createCheckbox("enableTradeRecord")
+    local enableMailMoneyChange = createCheckbox("enableMailMoneyChange")
+
+    local spaceV = 28;
+    local spaceStart = -48;
+    title:SetPoint("TOPLEFT", 16, -16)
+    enableTradeRecord:SetPoint("TOPLEFT", 16, spaceStart)
+    enableMailMoneyChange:SetPoint("TOPLEFT", 16, spaceStart - spaceV * 1)
 end
 
 ----------------------------------------
