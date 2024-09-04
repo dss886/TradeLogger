@@ -1,0 +1,15 @@
+## Interface: 30403
+## Title: TradeLogger
+## Author: dss886
+## Version: 0.1.0
+## SavedVariables: TradeLoggerDB
+
+# Locales\enUS.lua
+Locales\zhCN.lua
+# Locales\zhTW.lua
+
+Logger.lua
+Options.lua
+Core.lua
+
+Features\MailMoneyChange.lua
