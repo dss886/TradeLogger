@@ -1,5 +1,11 @@
 {
   "Lua.diagnostics.globals": [
+    "ERR_TRADE_BAG_FULL",
+    "ERR_TRADE_MAX_COUNT_EXCEEDED",
+    "ERR_TRADE_TARGET_BAG_FULL",
+    "ERR_TRADE_TARGET_MAX_COUNT_EXCEEDED",
+    "ERR_TRADE_CANCELLED",
+    "ERR_TRADE_COMPLETE",
     "Settings",
     "SlashCmdList",
     "TradeLoggerDB",

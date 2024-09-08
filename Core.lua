@@ -1,59 +1,6 @@
 local AddonName, Addon = ...
 
-----------------------------------------
---            注册和处理事件           --
-----------------------------------------
-
-local EventBus = {};
-local CallbackCenter = {};
-function EventBus.Register(eventName, callback)
-    if callback ~= nil and type(callback) == "function" then
-        CallbackCenter[eventName] = CallbackCenter[eventName] or {};
-        local callbacks = CallbackCenter[eventName];
-        for index = 1, #callbacks do
-            if callbacks[index] == callback then
-                return;
-            end
-        end
-        callbacks[#callbacks + 1] = callback;
-    end
-end
-
-function EventBus.Unregister(event, callback)
-    local callbacks = CallbackCenter[event];
-    if callbacks ~= nil and callback ~= nil and type(callback) == "function" then
-        for index = #callbacks, 1, -1 do
-            if callbacks[index] == callback then
-                tremove(callbacks, index);
-            end
-        end
-    end
-end
-
-function EventBus.Post(event, ...)
-    local callbacks = CallbackCenter[event];
-    if callbacks ~= nil then
-        for index = #callbacks, 1, -1 do
-            callbacks[index](...);
-        end
-    end
-end
-
-local EventFrame = CreateFrame("Frame", AddonName .. "EventFrame")
-EventFrame:Hide()
-EventFrame:SetScript("OnEvent", function(self, event, ...)
-    EventBus.Post(event, ...);
-end)
-
-EventFrame:RegisterEvent("ADDON_LOADED")
-EventFrame:RegisterEvent("MAIL_SHOW")
-EventFrame:RegisterEvent("MAIL_CLOSED")
-EventFrame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_HIDE")
-EventFrame:RegisterEvent("TRADE_SHOW")
-EventFrame:RegisterEvent("TRADE_PLAYER_ITEM_CHANGED")
-EventFrame:RegisterEvent("TRADE_TARGET_ITEM_CHANGED")
-EventFrame:RegisterEvent("TRADE_MONEY_CHANGED")
-EventFrame:RegisterEvent("TRADE_ACCEPT_UPDATE")
+local EventBus = Addon.EventBus;
 
 ----------------------------------------
 --             初始化配置             --
@@ -88,9 +35,3 @@ EventBus.Register("ADDON_LOADED", function(name)
         TradeLoggerDB.tradeRecord = {};
     end
 end)
-
-----------------------------------------
---        对其他模块暴露的接口         --
-----------------------------------------
-
-Addon.EventBus = EventBus;

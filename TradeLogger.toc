@@ -8,7 +8,9 @@
 Locales\zhCN.lua
 # Locales\zhTW.lua
 
-Logger.lua
+Utils\Logger.lua
+Utils\EventBus.lua
+
 Core.lua
 Options.lua
 
