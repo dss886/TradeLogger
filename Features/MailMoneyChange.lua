@@ -33,6 +33,6 @@ local function OnPlayerFrameHide(type)
     end
 end
 
-EventBus.RegisterCallback("MAIL_SHOW", OnMailShow);
-EventBus.RegisterCallback("MAIL_CLOSED", OnMailClosed);
-EventBus.RegisterCallback("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", OnPlayerFrameHide);
+EventBus.Register("MAIL_SHOW", OnMailShow);
+EventBus.Register("MAIL_CLOSED", OnMailClosed);
+EventBus.Register("PLAYER_INTERACTION_MANAGER_FRAME_HIDE", OnPlayerFrameHide);

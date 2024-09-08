@@ -6,7 +6,7 @@ local AddonName, Addon = ...
 
 local EventBus = {};
 local CallbackCenter = {};
-function EventBus.RegisterCallback(eventName, callback)
+function EventBus.Register(eventName, callback)
     if callback ~= nil and type(callback) == "function" then
         CallbackCenter[eventName] = CallbackCenter[eventName] or {};
         local callbacks = CallbackCenter[eventName];
@@ -19,7 +19,7 @@ function EventBus.RegisterCallback(eventName, callback)
     end
 end
 
-function EventBus.UnregisterCallback(event, callback)
+function EventBus.Unregister(event, callback)
     local callbacks = CallbackCenter[event];
     if callbacks ~= nil and callback ~= nil and type(callback) == "function" then
         for index = #callbacks, 1, -1 do
@@ -30,7 +30,7 @@ function EventBus.UnregisterCallback(event, callback)
     end
 end
 
-function EventBus.TriggerCallback(event, ...)
+function EventBus.Post(event, ...)
     local callbacks = CallbackCenter[event];
     if callbacks ~= nil then
         for index = #callbacks, 1, -1 do
@@ -42,7 +42,7 @@ end
 local EventFrame = CreateFrame("Frame", AddonName .. "EventFrame")
 EventFrame:Hide()
 EventFrame:SetScript("OnEvent", function(self, event, ...)
-    EventBus.TriggerCallback(event, ...);
+    EventBus.Post(event, ...);
 end)
 
 EventFrame:RegisterEvent("ADDON_LOADED")
@@ -70,7 +70,7 @@ local DEFAULT_DB = {
     ["tradeRecord"] = {},
 }
 
-EventBus.RegisterCallback("ADDON_LOADED", function(name)
+EventBus.Register("ADDON_LOADED", function(name)
     if name ~= AddonName then
 		return
 	end

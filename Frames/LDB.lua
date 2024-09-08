@@ -8,7 +8,7 @@ local EventBus = Addon.EventBus;
 --        一些数据操作用的工具函数      --
 ----------------------------------------
 
-local function getRecentTrade()
+local function GetRecentTrade()
     local tradeRecord = TradeLoggerDB.tradeRecord
     local recentTrade = {}
     local now = time()
@@ -23,7 +23,7 @@ local function getRecentTrade()
     return recentTrade
 end
 
-local function addTradeListToToolTip(tooltip, tradeList)
+local function AddTradeListToToolTip(tooltip, tradeList)
     local count = math.min(#tradeList, 10)
     for i = 1, count do
         local trade = tradeList[i]
@@ -38,7 +38,7 @@ end
 --          LDB配置（如果可用）        --
 ----------------------------------------
 
-local function initLDB()
+local function InitLDB()
     if LibStub and LibStub:GetLibrary("LibDataBroker-1.1", true) then
         local ldb = LibStub("LibDataBroker-1.1")
         local icon = "Interface\\MINIMAP\\TRACKING\\Mailbox"
@@ -52,11 +52,11 @@ local function initLDB()
         if not plugin then return end
 
         function plugin.OnTooltipShow(tooltip)
-            local recentTrade = getRecentTrade()
+            local recentTrade = GetRecentTrade()
             tooltip:AddDoubleLine(L["ldb_tooltip_recent_trade_title"], #recentTrade > 0 
                 and format(L["ldb_tooltip_recent_trade_count"], #recentTrade) 
                 or L["ldb_tooltip_recent_trade_none"])
-            addTradeListToToolTip(tooltip, recentTrade)
+            AddTradeListToToolTip(tooltip, recentTrade)
             tooltip:AddLine(" ")
             tooltip:AddLine(L["ldb_tooltip_desc1"])
             tooltip:AddLine(L["ldb_tooltip_desc2"])
@@ -64,7 +64,7 @@ local function initLDB()
 
         function plugin.OnClick(self, button)
             if button == "LeftButton" then
-                Logger.Debug("LDB_TradeLogger:OnClickLeftButton")
+                EventBus.Post("TL_TOGGLE_RECORD_FRAME")
             elseif button == "RightButton" then
                 Settings.OpenToCategory(AddonName)
             end
@@ -76,8 +76,8 @@ end
 --               初始化               --
 ----------------------------------------
 
-EventBus.RegisterCallback("ADDON_LOADED", function(name)
+EventBus.Register("ADDON_LOADED", function(name)
     if name == AddonName then
-        initLDB()
+        InitLDB()
 	end
 end)

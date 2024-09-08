@@ -17,6 +17,7 @@ local function createNewTrade()
         ["giveMoney"] = 0,
         ["receiveMoney"] = 0,
         ["location"] = GetRealZoneText(),
+        ["type"] = 0,
     }
 end
 
@@ -87,12 +88,14 @@ local function OnTradeAcceptUpdate()
     OnTradeMoneyChanged()
     CurrentTrade.timestamp = time()
     table.insert(TradeLoggerDB.tradeRecord, CurrentTrade)
-    Logger.Debug(CurrentTrade)
+    table.insert(TradeLoggerDB.tradeRecord, CurrentTrade)
+    Logger.Debug(format("与 %s 的交易已记录", CurrentTrade.targetName))
+    EventBus:Post("TL_TRADE_RECORD_ADDED")
     CurrentTrade = nil
 end
 
-EventBus.RegisterCallback("TRADE_SHOW", OnTradeShow);
-EventBus.RegisterCallback("TRADE_PLAYER_ITEM_CHANGED", OnTradePlayerItemChanged);
-EventBus.RegisterCallback("TRADE_TARGET_ITEM_CHANGED", OnTradeTargetItemChanged);
-EventBus.RegisterCallback("TRADE_MONEY_CHANGED", OnTradeMoneyChanged);
-EventBus.RegisterCallback("TRADE_ACCEPT_UPDATE", OnTradeAcceptUpdate);
+EventBus.Register("TRADE_SHOW", OnTradeShow);
+EventBus.Register("TRADE_PLAYER_ITEM_CHANGED", OnTradePlayerItemChanged);
+EventBus.Register("TRADE_TARGET_ITEM_CHANGED", OnTradeTargetItemChanged);
+EventBus.Register("TRADE_MONEY_CHANGED", OnTradeMoneyChanged);
+EventBus.Register("TRADE_ACCEPT_UPDATE", OnTradeAcceptUpdate);

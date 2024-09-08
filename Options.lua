@@ -59,7 +59,7 @@ end
 --               初始化               --
 ----------------------------------------
 
-EventBus.RegisterCallback("ADDON_LOADED", function(name)
+EventBus.Register("ADDON_LOADED", function(name)
     if name == AddonName then
         initOptions()
         addSlashCmd()

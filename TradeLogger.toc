@@ -11,7 +11,10 @@ Locales\zhCN.lua
 Logger.lua
 Core.lua
 Options.lua
-UI.lua
+
+Frames\LDB.lua
+Frames\Template.lua
+Frames\RecordFrame.lua
 
 Features\MailMoneyChange.lua
 Features\TradeRecord.lua

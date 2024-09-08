@@ -1,8 +1,9 @@
 {
   "Lua.diagnostics.globals": [
     "Settings",
-    "TradeLoggerDB",
     "SlashCmdList",
+    "TradeLoggerDB",
+    "UISpecialFrames",
     "STANDARD_TEXT_FONT",
     "InterfaceOptions_AddCategory",
     "InterfaceOptionsFrame_OpenToCategory"
