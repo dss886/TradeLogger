@@ -28,9 +28,7 @@ addon.L = {
     ["record_frame_table_header_type"] = "类型",
     ["record_frame_table_header_location"] = "位置",
     ["record_frame_table_header_money"] = "金钱",
-    ["record_frame_table_header_items"] = "物品",
-    ["record_frame_table_item_desc_give"] = "给予",
-    ["record_frame_table_item_desc_receive"] = "收到",
-    ["record_frame_table_item_desc_more"] = "等 %d 件物品",
+    ["record_frame_table_header_give_items"] = "交出物品",
+    ["record_frame_table_header_receive_items"] = "收到物品",
     ["record_frame_tips1"] = "点击分类进行排序，点击交易查看详情",
 }

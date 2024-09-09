@@ -12,8 +12,9 @@ local TABLE_COLS = {
     { name = "target", width = 88 },
     { name = "type",   width = 48 },
     { name = "location", width = 64 },
-    { name = "money",  width = 96 },
-    { name = "items",  width = 360 },
+    { name = "money",  width = 80 },
+    { name = "give_items",  width = 180 },
+    { name = "receive_items",  width = 180 },
 }
 local TITLE_BAR_HEIGHT = 40
 local ACTION_BAR_HEIGHT = 32
@@ -187,15 +188,13 @@ end
 function Builder.CreateTableRow(table)
     local row = Template.CreateTableRow(table, TABLE_ROW_HEIGHT)
     local left = 0
-    -- 这里不能用row:GetWidth()，因为row的宽度是创建完之后再定位确定的
-    local remainWidth = table.header:GetWidth()
     for i = 1, #TABLE_COLS do
         local string = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         string:SetHeight(TABLE_ROW_HEIGHT)
-        string:SetWidth(i == #TABLE_COLS and remainWidth or TABLE_COLS[i].width)
+        string:SetWidth(TABLE_COLS[i].width)
         string:SetPoint("LEFT", row, "LEFT", left, 0)
+        string:SetTextColor(1, 1, 1, 0.8)
         left = left + TABLE_COLS[i].width
-        remainWidth = remainWidth - TABLE_COLS[i].width
         row[TABLE_COLS[i].name] = string
     end
     return row
@@ -204,14 +203,15 @@ end
 function Builder.SetRowText(row, record, index)
     row:Enable()
     -- serial
-    row.serial:SetAlpha(0.8)
     row.serial:SetFont(STANDARD_TEXT_FONT, 12)
     row.serial:SetText(index)
     -- time
     row.time:SetFont(STANDARD_TEXT_FONT, 12)
     row.time:SetText(date("%Y-%m-%d %H:%M:%S", record.timestamp))
     -- target
+    local tClassColorR, tClassColorG, tClassColorB = GetClassColor(record.targetClass)
     row.target:SetText(record.targetName)
+    row.target:SetTextColor(tClassColorR, tClassColorG, tClassColorB, 1)
     -- type
     if record.type == 0 then
         row.type:SetText("交易")
@@ -224,15 +224,22 @@ function Builder.SetRowText(row, record, index)
     local diffMoney = record.receiveMoney - record.giveMoney
     if diffMoney == 0 then
         row.money:SetText("-")
+        row.money:SetTextColor(1, 1, 1, 0.8)
     elseif diffMoney > 0 then
         row.money:SetText(GetMoneyString(diffMoney))
+        row.money:SetTextColor(0.3, 1, 0.3, 0.8)
     else
         row.money:SetText("-" .. GetMoneyString(-diffMoney))
+        row.money:SetTextColor(1, 0.3, 0.3, 0.8)
     end
-    -- items
-    row.items:SetText(Data.GetRecordItemsDesc(record))
-    row.items:SetNonSpaceWrap(false)
-    row.items:SetMaxLines(1)
+    -- give items
+    row.give_items:SetText(Data.GetRecordItemsDesc(record.giveItems))
+    row.give_items:SetNonSpaceWrap(false)
+    row.give_items:SetMaxLines(1)
+    -- receive items
+    row.receive_items:SetText(Data.GetRecordItemsDesc(record.receiveItems))
+    row.receive_items:SetNonSpaceWrap(false)
+    row.receive_items:SetMaxLines(1)
 end
 
 -- 创建描述
@@ -289,40 +296,21 @@ function Data.ShowTableData()
     end
 end
 
-function Data.GetRecordItemsDesc(record)
-    local give = record.giveItems
-    local receive = record.receiveItems
+function Data.GetRecordItemsDesc(items)
+    if #items == 0 then
+        return "-"
+    end
     local getItemWithCount = function(item)
-        ---@diagnostic disable-next-line: deprecated
-        local _, _, _, _, _, _, _, itemStackCount = GetItemInfo(item.itemLink)
-        if not itemStackCount then
-            Logger.Debug("获取物品信息失败" .. item.itemLink)
-        end
-        if itemStackCount and itemStackCount > 1 then
+        if item.count > 1 then
             return item.itemLink .. "x" .. item.count
         else
             return item.itemLink
         end
     end
-    if #give == 0 and #receive == 0 then
-        return "-"
-    end
     local desc = ""
-    if #give > 0 then
-        desc = desc .. L["record_frame_table_item_desc_give"] .. " "
-        desc = desc .. getItemWithCount(give[1])
-        if #give > 1 then
-            desc = desc .. " " .. format(L["record_frame_table_item_desc_more"], #give)
-        end
-    end
-    if #receive > 0 then
-        if #give > 0 then
-            desc = desc .. ", "
-        end
-        desc = desc .. L["record_frame_table_item_desc_receive"] .. " "
-        desc = desc .. getItemWithCount(receive[1])
-        if #receive > 1 then
-            desc = desc .. " " .. format(L["record_frame_table_item_desc_more"], #receive)
+    if #items > 0 then
+        for _, item in ipairs(items) do
+            desc = desc .. getItemWithCount(item)
         end
     end
     return desc
