@@ -6,6 +6,10 @@ local EventBus = Addon.EventBus
 local CurrentTrade
 local tinsert = table.insert
 
+----------------------------------------
+--              工具函数              --
+----------------------------------------
+
 local function CreateNewTrade()
     return {
         timestamp = 0,
@@ -27,6 +31,36 @@ local function CreateNewTrade()
             message = nil,
         },
     }
+end
+
+local function GetTradeDetailDesc()
+    if not CurrentTrade then
+        return ""
+    end
+    local desc = ""
+    local give = L["trade_record_desc_give"]
+    local receive = L["trade_record_desc_receive"]
+    if CurrentTrade.giveMoney > 0 then
+        desc = desc .. format(give, GetMoneyString(CurrentTrade.giveMoney))
+    end
+    if CurrentTrade.receiveMoney > 0 then
+        desc = desc .. format(receive, GetMoneyString(CurrentTrade.receiveMoney))
+    end
+    if #CurrentTrade.giveItems > 0 then
+        local giveDesc = ""
+        for _, item in pairs(CurrentTrade.giveItems) do
+            giveDesc = giveDesc .. format("%sx%d", item.itemLink, item.count)
+        end
+        desc = desc .. format(give, giveDesc)
+    end
+    if #CurrentTrade.receiveItems > 0 then
+        local receiveDesc = ""
+        for _, item in pairs(CurrentTrade.receiveItems) do
+            receiveDesc = receiveDesc .. format("%sx%d", item.itemLink, item.count)
+        end
+        desc = desc .. format(receive, receiveDesc)
+    end
+    return desc
 end
 
 ----------------------------------------
@@ -120,6 +154,21 @@ end
 --            处理交易结果             --
 ----------------------------------------
 
+local function LogTradeResult(result, reason)
+    if not TradeLoggerDB.config.enableTradeConsoleLog then
+        return
+    end
+    local color = RAID_CLASS_COLORS[CurrentTrade.targetClass]
+    local name = format("|c%s%s|r", color.colorStr, CurrentTrade.targetName)
+    if result == "error" then
+        Logger.Debug(format(L["trade_record_error"], name, reason))
+    elseif result == "cancel" then
+        Logger.Debug(format(L["trade_record_cancel"], name, reason))
+    elseif result == "complete" then
+        Logger.Debug(format(L["trade_record_complete"], name) .. GetTradeDetailDesc())
+    end
+end
+
 -- 离谱的事件调用顺序！
 -- 主动取消交易：SHOW -> CLOSED -> CANCEL
 -- 自己距离太远：SHOW -> CLOSED -> CLOSED -> CANCEL
@@ -140,22 +189,25 @@ local function AnalyseCancelReason()
 end
 
 local function HandleTradeResult()
+    if not TradeLoggerDB.config.enableTradeRecord or not CurrentTrade then
+        return
+    end
     if CurrentTrade.extra.status == "error" then
-        Logger.Debug(format(L["trade_record_error"], CurrentTrade.targetName, CurrentTrade.extra.message))
+        LogTradeResult("error", CurrentTrade.extra.message)
         CurrentTrade = nil
         return
     end
     if CurrentTrade.extra.status == "cancel" then
         local reason = L["trade_record_cancel_reason_"..AnalyseCancelReason()]
-        Logger.Debug(format(L["trade_record_cancel"], CurrentTrade.targetName, reason))
+        LogTradeResult("cancel", reason)
         CurrentTrade = nil
         return
     end
     CurrentTrade.timestamp = time()
     CurrentTrade.extra = nil
     tinsert(TradeLoggerDB.tradeRecord, CurrentTrade)
-    Logger.Debug(format(L["trade_record_save"], CurrentTrade.targetName))
-    EventBus:Post("TL_TRADE_RECORD_ADDED")
+    LogTradeResult("complete")
+    EventBus.Post("TL_TRADE_RECORD_ADDED")
     CurrentTrade = nil
 end
 

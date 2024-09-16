@@ -25,7 +25,7 @@ end
 
 local function createCheckbox(key)
     local config = TradeLoggerDB.config;
-    local checkbox = CreateFrame("CheckButton", AddonName..key, Options, "InterfaceOptionsCheckButtonTemplate")
+    local checkbox = CreateFrame("CheckButton", nil, Options, "InterfaceOptionsCheckButtonTemplate")
 
     checkbox.Text:SetText(L[key])
     checkbox:SetChecked(config[key])
@@ -44,15 +44,28 @@ local function initOptions()
     local title = Options:CreateFontString(AddonName.."Title", "ARTWORK", "GameFontNormal")
 	title:SetText(AddonName)
     title:SetFont(STANDARD_TEXT_FONT, 18, "")
+    title:SetPoint("TOPLEFT", 16, -16)
 
     local enableTradeRecord = createCheckbox("enableTradeRecord")
+    local enableTradeConsoleLog = createCheckbox("enableTradeConsoleLog")
+    local enableTradeWhisper = createCheckbox("enableTradeWhisper")
+
+    local enableMailRecord = createCheckbox("enableMailRecord")
+    local enableMailConsoleLog = createCheckbox("enableMailConsoleLog")
     local enableMailMoneyChange = createCheckbox("enableMailMoneyChange")
 
-    local spaceV = 28;
-    local spaceStart = -48;
-    title:SetPoint("TOPLEFT", 16, -16)
-    enableTradeRecord:SetPoint("TOPLEFT", 16, spaceStart)
-    enableMailMoneyChange:SetPoint("TOPLEFT", 16, spaceStart - spaceV * 1)
+    local xStart = 16;
+    local yStart = -48;
+    local xSpace = 16;
+    local ySpace = 32;
+
+    enableTradeRecord:SetPoint("TOPLEFT", xStart, yStart)
+    enableTradeConsoleLog:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 1)
+    enableTradeWhisper:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 2)
+
+    enableMailRecord:SetPoint("TOPLEFT", xStart, yStart - ySpace * 3)
+    enableMailConsoleLog:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 4)
+    enableMailMoneyChange:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 5)
 end
 
 ----------------------------------------
@@ -61,6 +74,8 @@ end
 
 EventBus.Register("ADDON_LOADED", function(name)
     if name == AddonName then
+        -- TODO 这里的时机早于数据库升级，
+        -- 这里读到的还是旧版本数据，待优化
         initOptions()
         addSlashCmd()
 	end

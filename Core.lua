@@ -1,6 +1,7 @@
 local AddonName, Addon = ...
 
 local EventBus = Addon.EventBus;
+local Logger = Addon.Logger;
 
 ----------------------------------------
 --             初始化配置             --
@@ -8,11 +9,15 @@ local EventBus = Addon.EventBus;
 
 local DEFAULT_CONFIG = {
     ["enableTradeRecord"] = true,
+    ["enableTradeConsoleLog"] = true,
+    ["enableTradeWhisper"] = true,
+    ["enableMailRecord"] = true,
+    ["enableMailConsoleLog"] = true,
     ["enableMailMoneyChange"] = true,
 }
 
 local DEFAULT_DB = {
-    ["version"] = 1,
+    ["version"] = 2,
     ["config"] = DEFAULT_CONFIG,
     ["tradeRecord"] = {},
 }
