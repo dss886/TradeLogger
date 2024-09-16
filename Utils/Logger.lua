@@ -20,7 +20,7 @@ local LEVEL_COLOR = {
 
 local LOGGER_TEMPLATE = "|cFF00CCFF[TradeLogger]: %s%s|r";
 
-function Logger.PrintImpl(content, deps)
+function Logger.PrintImpl(deps, content)
     if type(content) == "function" then
         return "[function]";
     elseif type(content) == "table" then
@@ -28,7 +28,7 @@ function Logger.PrintImpl(content, deps)
         local indent = string.rep(" ", deps * 4);
         local indent2 = string.rep(" ", (deps + 1) * 4);
         for k, v in pairs(content) do
-            str = str .. format("|n%s%s: %s", indent2, k, Logger.PrintImpl(v, deps + 1));
+            str = str .. format("|n%s%s: %s", indent2, k, Logger.PrintImpl(deps + 1, v));
         end
         str = str .. format("|n%s%s", indent, "}");
         return str;
@@ -37,27 +37,35 @@ function Logger.PrintImpl(content, deps)
     end
 end
 
-function Logger.Info(content)
+function Logger.PrintWrapper(deps, ...)
+    local content = "";
+    for i = 1, select("#", ...) do
+        content = content .. " " ..Logger.PrintImpl(deps, select(i, ...));
+    end
+    return content;
+end
+
+function Logger.Info(...)
     if Logger.logLevel <= Logger.LEVEL.INFO then
-        print(format(LOGGER_TEMPLATE, LEVEL_COLOR.INFO, Logger.PrintImpl(content, 0)));
+        print(format(LOGGER_TEMPLATE, LEVEL_COLOR.INFO, Logger.PrintWrapper(0, ...)));
     end
 end
 
-function Logger.Debug(content)
+function Logger.Debug(...)
     if Logger.logLevel <= Logger.LEVEL.DEBUG then
-        print(format(LOGGER_TEMPLATE, LEVEL_COLOR.DEBUG, Logger.PrintImpl(content, 0)));
+        print(format(LOGGER_TEMPLATE, LEVEL_COLOR.DEBUG, Logger.PrintWrapper(0, ...)));
     end
 end
 
-function Logger.Warn(content)
+function Logger.Warn(...)
     if Logger.logLevel <= Logger.LEVEL.WARN then
-        print(format(LOGGER_TEMPLATE, LEVEL_COLOR.WARN, Logger.PrintImpl(content, 0)));
+        print(format(LOGGER_TEMPLATE, LEVEL_COLOR.WARN, Logger.PrintWrapper(0, ...)));
     end
 end
 
-function Logger.Error(content)
+function Logger.Error(...)
     if Logger.logLevel <= Logger.LEVEL.ERROR then
-        print(format(LOGGER_TEMPLATE, LEVEL_COLOR.ERROR, Logger.PrintImpl(content, 0)));
+        print(format(LOGGER_TEMPLATE, LEVEL_COLOR.ERROR, Logger.PrintWrapper(0, ...)));
     end
 end
 
