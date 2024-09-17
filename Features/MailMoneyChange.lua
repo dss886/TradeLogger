@@ -16,9 +16,9 @@ local function OnMailClosed()
     if IsMailBoxOpened and config.enableMailMoneyChange then
         local diffMoney = GetMoney() - MailOpenMoney;
         if diffMoney > 0 then
-            Logger.Info(format(L["mail_money_change_incr"], GetMoneyString(diffMoney)));
+            Logger.Info(format(L["mailMoneyChangeIncr"], GetMoneyString(diffMoney)));
         elseif diffMoney < 0 then
-            Logger.Info(format(L["mail_money_change_decr"], GetMoneyString(-diffMoney)));
+            Logger.Info(format(L["mailMoneyChangeDecr"], GetMoneyString(-diffMoney)));
         end
         IsMailBoxOpened = false;
     end

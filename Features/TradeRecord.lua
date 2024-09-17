@@ -38,8 +38,8 @@ local function GetTradeDetailDesc()
         return ""
     end
     local desc = ""
-    local give = L["trade_record_desc_give"]
-    local receive = L["trade_record_desc_receive"]
+    local give = L["tradeRecordDescGive"]
+    local receive = L["tradeRecordDescReceive"]
     if CurrentTrade.giveMoney > 0 then
         desc = desc .. format(give, GetMoneyString(CurrentTrade.giveMoney))
     end
@@ -161,11 +161,11 @@ local function LogTradeResult(result, reason)
     local color = RAID_CLASS_COLORS[CurrentTrade.targetClass]
     local name = format("|c%s%s|r", color.colorStr, CurrentTrade.targetName)
     if result == "error" then
-        Logger.Debug(format(L["trade_record_error"], name, reason))
+        Logger.Debug(format(L["tradeRecordError"], name, reason))
     elseif result == "cancel" then
-        Logger.Debug(format(L["trade_record_cancel"], name, reason))
+        Logger.Debug(format(L["tradeRecordCancel"], name, reason))
     elseif result == "complete" then
-        Logger.Debug(format(L["trade_record_complete"], name) .. GetTradeDetailDesc())
+        Logger.Debug(format(L["tradeRecordComplete"], name) .. GetTradeDetailDesc())
     end
 end
 
@@ -174,16 +174,16 @@ end
 -- 自己距离太远：SHOW -> CLOSED -> CLOSED -> CANCEL
 -- 对方取消/距离太远：SHOW -> CANCEL -> CLOSED -> CLOSED
 local function AnalyseCancelReason()
-    local reason = "unknown"
+    local reason = "Unknown"
     local e = CurrentTrade.extra.events
     local n = #e
     if n >= 3 and e[n]=="TRADE_REQUEST_CANCEL" and e[n-1]=="TRADE_CLOSED" and e[n-2]=="TRADE_SHOW" then
-        reason = "self"
+        reason = "Self"
     elseif n >= 3 and e[n]=="TRADE_REQUEST_CANCEL" and e[n-1]=="TRADE_CLOSED" and e[n-2]=="TRADE_CLOSED" then
-        reason = "self_too_far"
+        reason = "SelfTooFar"
     elseif n >= 3 and e[n]=="TRADE_CLOSED" and e[n-1]=="TRADE_CLOSED" and e[n-2]=="TRADE_REQUEST_CANCEL" then
         -- TODO 没办法区分对方取消和对方超出距离？
-        reason = "target"
+        reason = "Target"
     end
     return reason
 end
@@ -198,7 +198,7 @@ local function HandleTradeResult()
         return
     end
     if CurrentTrade.extra.status == "cancel" then
-        local reason = L["trade_record_cancel_reason_"..AnalyseCancelReason()]
+        local reason = L["tradeRecordCancelReason"..AnalyseCancelReason()]
         LogTradeResult("cancel", reason)
         CurrentTrade = nil
         return

@@ -13,8 +13,8 @@ local TABLE_COLS = {
     { name = "type",   width = 48 },
     { name = "location", width = 64 },
     { name = "money",  width = 80 },
-    { name = "give_items",  width = 180 },
-    { name = "receive_items",  width = 180 },
+    { name = "giveItems",  width = 180 },
+    { name = "receiveItems",  width = 180 },
 }
 local TITLE_BAR_HEIGHT = 40
 local ACTION_BAR_HEIGHT = 32
@@ -125,9 +125,9 @@ function Builder.CreateActionBar(frame)
     actionBar:EnableMouse(true)
 
     local preBtn = Template.CreatePlainButton(actionBar,
-        L["record_frame_action_btn_pre"], ACTION_BAR_HEIGHT, Action.OnActionPreClick)
+        L["recordFrameActionBtnPre"], ACTION_BAR_HEIGHT, Action.OnActionPreClick)
     local nextBtn = Template.CreatePlainButton(actionBar,
-        L["record_frame_action_btn_next"], ACTION_BAR_HEIGHT, Action.OnActionNextClick)
+        L["recordFrameActionBtnNext"], ACTION_BAR_HEIGHT, Action.OnActionNextClick)
 
     -- pageBtn单独处理下
     local pageBtn = Template.CreatePlainButton(actionBar, "1/1", ACTION_BAR_HEIGHT, nil)
@@ -173,10 +173,10 @@ function Builder.CreateTableHeader(table)
     divider:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", -1, 0)
     -- 字段
     local left = 0
-    local keyPrefix = "record_frame_table_header_"
+    local keyPrefix = "recordFrameTableHeader"
     local remainWidth = header:GetWidth()
     for _, col in ipairs(TABLE_COLS) do
-        local button = Template.CreateTableHeaderButton(header, L[keyPrefix .. col.name], 30,
+        local button = Template.CreateTableHeaderButton(header, L[keyPrefix..col.name:gsub("^%l", string.upper)], 30,
             col.width == -1 and remainWidth or col.width)
         button:SetPoint("LEFT", header, "LEFT", left, 0)
         left = left + col.width
@@ -211,7 +211,7 @@ end
 -- 创建描述
 function Builder.CreateDescription(frame)
     local desc = frame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    desc:SetText(L["record_frame_tips1"])
+    desc:SetText(L["recordFrameTip1"])
     desc:SetHeight(DESC_HEIGHT)
     desc:SetJustifyH("LEFT")
     desc:SetJustifyV("CENTER")
@@ -278,9 +278,9 @@ function Data.SetRowText(row, record, index)
     row.target:SetTextColor(tClassColorR, tClassColorG, tClassColorB, 1)
     -- type
     if record.type == 0 then
-        row.type:SetText(L["record_frame_table_type_trade"])
+        row.type:SetText(L["recordFrameTableTypeTrade"])
     elseif record.type == 1 then
-        row.type:SetText(L["record_frame_table_type_mail"])
+        row.type:SetText(L["recordFrameTableTypeMail"])
     end
     -- location
     row.location:SetText(record.location)
@@ -297,13 +297,13 @@ function Data.SetRowText(row, record, index)
         row.money:SetTextColor(1, 0.3, 0.3, 0.8)
     end
     -- give items
-    row.give_items:SetText(Data.GetRecordItemsDesc(record.giveItems))
-    row.give_items:SetNonSpaceWrap(false)
-    row.give_items:SetMaxLines(1)
+    row.giveItems:SetText(Data.GetRecordItemsDesc(record.giveItems))
+    row.giveItems:SetNonSpaceWrap(false)
+    row.giveItems:SetMaxLines(1)
     -- receive items
-    row.receive_items:SetText(Data.GetRecordItemsDesc(record.receiveItems))
-    row.receive_items:SetNonSpaceWrap(false)
-    row.receive_items:SetMaxLines(1)
+    row.receiveItems:SetText(Data.GetRecordItemsDesc(record.receiveItems))
+    row.receiveItems:SetNonSpaceWrap(false)
+    row.receiveItems:SetMaxLines(1)
     -- tooltip
     Data.SetItemTooltip(row, record)
 end
@@ -321,7 +321,7 @@ function Data.SetItemTooltip(row, record)
         tip:SetPoint("LEFT", row, "RIGHT", TABLE_MARGIN_H + 2, 0)
         tip:ClearLines()
         if #record.giveItems > 0 then
-            tip:AddLine(L["record_frame_tooltip_give_items"], 1, 1, 1)
+            tip:AddLine(L["recordFrameTooltipGiveItems"], 1, 1, 1)
             for _, item in ipairs(record.giveItems) do
                 tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
             end
@@ -330,7 +330,7 @@ function Data.SetItemTooltip(row, record)
             if #record.giveItems > 0 then
                 tip:AddLine(" ")
             end
-            tip:AddLine(L["record_frame_tooltip_receive_items"], 1, 1, 1)
+            tip:AddLine(L["recordFrameTooltipReceiveItems"], 1, 1, 1)
             for _, item in ipairs(record.receiveItems) do
                 tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
             end

@@ -53,13 +53,13 @@ local function InitLDB()
 
         function plugin.OnTooltipShow(tooltip)
             local recentTrade = GetRecentTrade()
-            tooltip:AddDoubleLine(L["ldb_tooltip_recent_trade_title"], #recentTrade > 0 
-                and format(L["ldb_tooltip_recent_trade_count"], #recentTrade) 
-                or L["ldb_tooltip_recent_trade_none"])
+            tooltip:AddDoubleLine(L["ldbTooltipRecentTradeTitle"], #recentTrade > 0
+                and format(L["ldbTooltipRecentTradeCount"], #recentTrade)
+                or L["ldbTooltipRecentTradeNone"])
             AddTradeListToToolTip(tooltip, recentTrade)
             tooltip:AddLine(" ")
-            tooltip:AddLine(L["ldb_tooltip_desc1"])
-            tooltip:AddLine(L["ldb_tooltip_desc2"])
+            tooltip:AddLine(L["ldbTooltipDesc1"])
+            tooltip:AddLine(L["ldbTooltipDesc2"])
         end
 
         function plugin.OnClick(self, button)
