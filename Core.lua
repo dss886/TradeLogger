@@ -1,7 +1,22 @@
 local AddonName, Addon = ...
 
+local L = Addon.L;
 local EventBus = Addon.EventBus;
 local Logger = Addon.Logger;
+
+----------------------------------------
+--            挂载全局对象             --
+----------------------------------------
+
+TradeLogger = {}
+TradeLogger.EventBus = EventBus;
+
+----------------------------------------
+--            游戏按键绑定             --
+----------------------------------------
+
+BINDING_HEADER_TRADELOGGER = "TradeLogger";
+BINDING_NAME_TRADELOGGER_TOGGLE = L["bindingNameToggle"];
 
 ----------------------------------------
 --             初始化配置             --

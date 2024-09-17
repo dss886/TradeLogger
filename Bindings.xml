@@ -1,0 +1,5 @@
+<Bindings>
+  <Binding name="TRADELOGGER_TOGGLE" Category="BINDING_HEADER_TRADELOGGER">
+      TradeLogger.EventBus.Post("TL_TOGGLE_RECORD_FRAME")
+  </Binding>
+</Bindings>

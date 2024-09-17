@@ -2,6 +2,7 @@ local _, addon = ...
 
 addon.L = {
     ["title"] = "交易记录",
+    ["bindingNameToggle"] = "打开/关闭交易记录窗口",
     ["enableTradeRecord"] = "启用交易记录功能",
     ["enableTradeConsoleLog"] = "聊天窗输出交易详情",
     ["enableTradeWhisper"] = "启用交易密语通报",
