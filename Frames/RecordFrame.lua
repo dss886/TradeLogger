@@ -45,6 +45,7 @@ function Builder.InitFrame()
     Builder.CreateTitleBar(frame)
     Builder.CreateActionBar(frame)
     Builder.CreateTable(frame)
+    Builder.CreateToolTip(frame)
     Builder.CreateDescription(frame)
     Frame = frame
 end
@@ -200,46 +201,11 @@ function Builder.CreateTableRow(table)
     return row
 end
 
-function Builder.SetRowText(row, record, index)
-    row:Enable()
-    -- serial
-    row.serial:SetFont(STANDARD_TEXT_FONT, 12)
-    row.serial:SetText(index)
-    -- time
-    row.time:SetFont(STANDARD_TEXT_FONT, 12)
-    row.time:SetText(date("%Y-%m-%d %H:%M:%S", record.timestamp))
-    -- target
-    local tClassColorR, tClassColorG, tClassColorB = GetClassColor(record.targetClass)
-    row.target:SetText(record.targetName)
-    row.target:SetTextColor(tClassColorR, tClassColorG, tClassColorB, 1)
-    -- type
-    if record.type == 0 then
-        row.type:SetText("交易")
-    elseif record.type == 1 then
-        row.type:SetText("邮件")
-    end
-    -- location
-    row.location:SetText(record.location)
-    -- money
-    local diffMoney = record.receiveMoney - record.giveMoney
-    if diffMoney == 0 then
-        row.money:SetText("-")
-        row.money:SetTextColor(1, 1, 1, 0.8)
-    elseif diffMoney > 0 then
-        row.money:SetText(GetMoneyString(diffMoney))
-        row.money:SetTextColor(0.3, 1, 0.3, 0.8)
-    else
-        row.money:SetText("-" .. GetMoneyString(-diffMoney))
-        row.money:SetTextColor(1, 0.3, 0.3, 0.8)
-    end
-    -- give items
-    row.give_items:SetText(Data.GetRecordItemsDesc(record.giveItems))
-    row.give_items:SetNonSpaceWrap(false)
-    row.give_items:SetMaxLines(1)
-    -- receive items
-    row.receive_items:SetText(Data.GetRecordItemsDesc(record.receiveItems))
-    row.receive_items:SetNonSpaceWrap(false)
-    row.receive_items:SetMaxLines(1)
+-- 创建鼠标提示
+function Builder.CreateToolTip(frame)
+    local name = AddonName .. "RecordFrameListTooltip"
+    frame.detailTooltip = CreateFrame("GameTooltip", name, UIParent, "GameTooltipTemplate")
+    frame.detailTooltip:Hide()
 end
 
 -- 创建描述
@@ -267,16 +233,6 @@ function Data.UpdatePagination()
     Frame.pagination:SetText(format("%d/%d", CurPage, Data.GetTotalPage()))
 end
 
-function Data.ClearTableData()
-    for i = 1, TABLE_ROW_COUNT do
-        local row = Frame.table.rows[i]
-        for _, col in ipairs(TABLE_COLS) do
-            row[col.name]:SetText("")
-            row:Disable()
-        end
-    end
-end
-
 -- 根据目前的（排序、筛选、翻页等）条件刷新要显示的数据
 function Data.UpdateCurRecords()
     -- TODO 过滤、排序
@@ -291,9 +247,99 @@ function Data.ShowTableData()
     for i = 1, TABLE_ROW_COUNT do
         local index = (CurPage - 1) * TABLE_ROW_COUNT + i
         if index <= #CurRecords then
-            Builder.SetRowText(Frame.table.rows[i], CurRecords[index], index)
+            Data.SetRowText(Frame.table.rows[i], CurRecords[index], index)
         end
     end
+end
+
+function Data.ClearTableData()
+    for i = 1, TABLE_ROW_COUNT do
+        local row = Frame.table.rows[i]
+        for _, col in ipairs(TABLE_COLS) do
+            row[col.name]:SetText("")
+            row:SetScript("OnMouseUp", nil)
+            row:Disable()
+        end
+    end
+end
+
+-- 根据交易记录填充行数据
+function Data.SetRowText(row, record, index)
+    row:Enable()
+    -- serial
+    row.serial:SetFont(STANDARD_TEXT_FONT, 12)
+    row.serial:SetText(index)
+    -- time
+    row.time:SetFont(STANDARD_TEXT_FONT, 12)
+    row.time:SetText(date("%Y-%m-%d %H:%M:%S", record.timestamp))
+    -- target
+    local tClassColorR, tClassColorG, tClassColorB = GetClassColor(record.targetClass)
+    row.target:SetText(record.targetName)
+    row.target:SetTextColor(tClassColorR, tClassColorG, tClassColorB, 1)
+    -- type
+    if record.type == 0 then
+        row.type:SetText(L["record_frame_table_type_trade"])
+    elseif record.type == 1 then
+        row.type:SetText(L["record_frame_table_type_mail"])
+    end
+    -- location
+    row.location:SetText(record.location)
+    -- money
+    local diffMoney = record.receiveMoney - record.giveMoney
+    if diffMoney == 0 then
+        row.money:SetText("-")
+        row.money:SetTextColor(1, 1, 1, 0.8)
+    elseif diffMoney > 0 then
+        row.money:SetText(GetMoneyString(diffMoney))
+        row.money:SetTextColor(0.3, 1, 0.3, 0.8)
+    else
+        row.money:SetText("-" .. GetMoneyString(-diffMoney))
+        row.money:SetTextColor(1, 0.3, 0.3, 0.8)
+    end
+    -- give items
+    row.give_items:SetText(Data.GetRecordItemsDesc(record.giveItems))
+    row.give_items:SetNonSpaceWrap(false)
+    row.give_items:SetMaxLines(1)
+    -- receive items
+    row.receive_items:SetText(Data.GetRecordItemsDesc(record.receiveItems))
+    row.receive_items:SetNonSpaceWrap(false)
+    row.receive_items:SetMaxLines(1)
+    -- tooltip
+    Data.SetItemTooltip(row, record)
+end
+
+-- 设置鼠标提示
+function Data.SetItemTooltip(row, record)
+    if #record.giveItems == 0 and #record.receiveItems == 0 then
+        row:SetScript("OnEnter", nil)
+        row:SetScript("OnLeave", nil)
+        return
+    end
+    local tip = Frame.detailTooltip
+    row:SetScript("OnEnter", function()
+        tip:SetOwner(row, "ANCHOR_NONE")
+        tip:SetPoint("LEFT", row, "RIGHT", TABLE_MARGIN_H + 2, 0)
+        tip:ClearLines()
+        if #record.giveItems > 0 then
+            tip:AddLine(L["record_frame_tooltip_give_items"], 1, 1, 1)
+            for _, item in ipairs(record.giveItems) do
+                tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
+            end
+        end
+        if #record.receiveItems > 0 then
+            if #record.giveItems > 0 then
+                tip:AddLine(" ")
+            end
+            tip:AddLine(L["record_frame_tooltip_receive_items"], 1, 1, 1)
+            for _, item in ipairs(record.receiveItems) do
+                tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
+            end
+        end
+        tip:Show()
+    end)
+    row:SetScript("OnLeave", function()
+        tip:Hide()
+    end)
 end
 
 function Data.GetRecordItemsDesc(items)
