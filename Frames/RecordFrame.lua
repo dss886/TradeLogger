@@ -311,35 +311,35 @@ end
 -- 设置鼠标提示
 function Data.SetItemTooltip(row, record)
     if #record.giveItems == 0 and #record.receiveItems == 0 then
-        row:SetScript("OnEnter", nil)
-        row:SetScript("OnLeave", nil)
+        row.OnHover = nil
         return
     end
     local tip = Frame.detailTooltip
-    row:SetScript("OnEnter", function()
-        tip:SetOwner(row, "ANCHOR_NONE")
-        tip:SetPoint("LEFT", row, "RIGHT", TABLE_MARGIN_H + 2, 0)
-        tip:ClearLines()
-        if #record.giveItems > 0 then
-            tip:AddLine(L["recordFrameTooltipGiveItems"], 1, 1, 1)
-            for _, item in ipairs(record.giveItems) do
-                tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
-            end
-        end
-        if #record.receiveItems > 0 then
+    row.OnHover = function (isEnter)
+        if isEnter then
+            tip:SetOwner(row, "ANCHOR_NONE")
+            tip:SetPoint("LEFT", row, "RIGHT", TABLE_MARGIN_H + 2, 0)
+            tip:ClearLines()
             if #record.giveItems > 0 then
-                tip:AddLine(" ")
+                tip:AddLine(L["recordFrameTooltipGiveItems"], 1, 1, 1)
+                for _, item in ipairs(record.giveItems) do
+                    tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
+                end
             end
-            tip:AddLine(L["recordFrameTooltipReceiveItems"], 1, 1, 1)
-            for _, item in ipairs(record.receiveItems) do
-                tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
+            if #record.receiveItems > 0 then
+                if #record.giveItems > 0 then
+                    tip:AddLine(" ")
+                end
+                tip:AddLine(L["recordFrameTooltipReceiveItems"], 1, 1, 1)
+                for _, item in ipairs(record.receiveItems) do
+                    tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
+                end
             end
+            tip:Show()
+        else
+            tip:Hide()
         end
-        tip:Show()
-    end)
-    row:SetScript("OnLeave", function()
-        tip:Hide()
-    end)
+    end
 end
 
 function Data.GetRecordItemsDesc(items)

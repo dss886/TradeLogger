@@ -83,9 +83,15 @@ function Template.CreateTableRow(parent, height)
     row:SetBackdropColor(0, 0, 0, 0)
     row:SetScript("OnEnter", function(self)
         self:SetBackdropColor(1, 1, 1, 0.15)
+        if row.OnHover then
+            row.OnHover(true)
+        end
     end)
     row:SetScript("OnLeave", function(self)
         self:SetBackdropColor(0, 0, 0, 0)
+        if row.OnHover then
+            row.OnHover(false)
+        end
     end)
     row:SetHeight(height)
     row.Enable = function ()
