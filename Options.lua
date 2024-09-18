@@ -72,11 +72,8 @@ end
 --               初始化                --
 ----------------------------------------
 
-EventBus.Register("ADDON_LOADED", function(name)
-    if name == AddonName then
-        -- TODO 这里的时机早于数据库升级，
-        -- 这里读到的还是旧版本数据，待优化
-        initOptions()
-        addSlashCmd()
-	end
+-- 使用自定义的事件是为了保证Options初始化时，数据库已经更新完成
+EventBus.Register("TL_DB_LOADED", function()
+    initOptions()
+    addSlashCmd()
 end)

@@ -54,4 +54,5 @@ EventBus.Register("ADDON_LOADED", function(name)
     if TradeLoggerDB.tradeRecord == nil then
         TradeLoggerDB.tradeRecord = {};
     end
+    EventBus.Post("TL_DB_LOADED")
 end)
