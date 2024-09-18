@@ -5,6 +5,7 @@ local Logger = Addon.Logger
 local EventBus = Addon.EventBus
 local Template = Addon.Template
 local tinsert = table.insert
+local tremove = table.remove
 
 local TABLE_COLS = {
     { name = "serial", width = 32 },
@@ -20,6 +21,7 @@ local TITLE_BAR_HEIGHT = 40
 local ACTION_BAR_HEIGHT = 32
 local TABLE_ROW_HEIGHT = 32
 local TABLE_ROW_COUNT = 10
+local TABLE_ROW_CHECK_BTN_SIZE = 24
 local TABLE_MARGIN_H = 16
 local DESC_HEIGHT = 40
 
@@ -27,6 +29,7 @@ local Frame
 local Dirty = true
 local CurPage = 1
 local CurRecords = {}
+local SelectedRecords = {}
 
 local Data = {}
 local Action = {}
@@ -118,18 +121,17 @@ end
 
 -- 创建操作栏
 function Builder.CreateActionBar(frame)
+    -- 外层容器
     local actionBar = CreateFrame("Frame", nil, frame)
     actionBar:SetPoint("TOPLEFT", frame.titleBar, "BOTTOMLEFT", 0, 0)
     actionBar:SetPoint("TOPRIGHT", frame.titleBar, "BOTTOMRIGHT", 0, 0)
     actionBar:SetHeight(ACTION_BAR_HEIGHT)
-    actionBar:EnableMouse(true)
 
+    -- pagination
     local preBtn = Template.CreatePlainButton(actionBar,
         L["recordFrameActionBtnPre"], ACTION_BAR_HEIGHT, Action.OnActionPreClick)
     local nextBtn = Template.CreatePlainButton(actionBar,
         L["recordFrameActionBtnNext"], ACTION_BAR_HEIGHT, Action.OnActionNextClick)
-
-    -- pageBtn单独处理下
     local pageBtn = Template.CreatePlainButton(actionBar, "1/1", ACTION_BAR_HEIGHT, nil)
     pageBtn:Disable()
     pageBtn:SetWidth(pageBtn:GetTextWidth() + 16 < ACTION_BAR_HEIGHT
@@ -139,8 +141,38 @@ function Builder.CreateActionBar(frame)
     pageBtn:SetPoint("RIGHT", nextBtn, "LEFT", -8, 0)
     preBtn:SetPoint("RIGHT", pageBtn, "LEFT", -8, 0)
 
+    -- 常驻 actionPanel
+    local actionPanel1 = CreateFrame("Frame", nil, actionBar)
+    actionPanel1:SetPoint("LEFT", actionBar, "LEFT", 16, 0)
+    actionPanel1:SetPoint("RIGHT", preBtn, "LEFT", -8, 0)
+    actionPanel1:SetHeight(ACTION_BAR_HEIGHT)
+
+    -- 选中状态的 actionPanel
+    local actionPanel2 = CreateFrame("Frame", nil, actionBar)
+    actionPanel2:SetPoint("LEFT", actionBar, "LEFT", 16, 0)
+    actionPanel2:SetPoint("RIGHT", preBtn, "LEFT", -8, 0)
+    actionPanel2:SetHeight(ACTION_BAR_HEIGHT)
+    actionPanel2:Hide()
+
+    -- 常驻按钮
+    local filterBtn = Template.CreatePlainButton(actionPanel1,
+        L["recordFrameActionBtnFilter"], ACTION_BAR_HEIGHT, Action.OnActionFilterClick)
+    local searchBtn = Template.CreatePlainButton(actionPanel1,
+        L["recordFrameActionBtnSearch"], ACTION_BAR_HEIGHT, Action.OnActionSearchClick)
+    
+    filterBtn:SetPoint("LEFT", actionPanel1, "LEFT", 0, 0)
+    searchBtn:SetPoint("LEFT", filterBtn, "RIGHT", 8, 0)
+
+    -- 选中状态下的按钮
+    local selectActionBtn = Template.CreatePlainButton(actionPanel2,
+        L["Action.OnActionSelectClearClick"], ACTION_BAR_HEIGHT, Action.OnActionSelectClearClick)
+        selectActionBtn:SetPoint("LEFT", actionPanel2, "LEFT", 0, 0)
+
     frame.actionBar = actionBar
-    frame.pagination = pageBtn
+    frame.pageBtn = pageBtn
+    frame.selectActionBtn = selectActionBtn
+    frame.actionPanel1 = actionPanel1
+    frame.actionPanel2 = actionPanel2
 end
 
 -- 创建表格
@@ -149,7 +181,7 @@ function Builder.CreateTable(frame)
     table:SetPoint("TOPLEFT", frame.actionBar, "BOTTOMLEFT", TABLE_MARGIN_H, 0)
     table:SetPoint("TOPRIGHT", frame.actionBar, "TOPRIGHT", -TABLE_MARGIN_H, 0)
     table:SetHeight(TABLE_ROW_HEIGHT * (TABLE_ROW_COUNT + 1))
-    Builder.CreateTableHeader(table)
+    Builder.CreateTableHeader(frame, table)
     table.rows = {}
     for i = 1, TABLE_ROW_COUNT do
         local row = Builder.CreateTableRow(table)
@@ -161,7 +193,7 @@ function Builder.CreateTable(frame)
 end
 
 -- 创建表格头
-function Builder.CreateTableHeader(table)
+function Builder.CreateTableHeader(frame, table)
     local header = CreateFrame("Frame", nil, table)
     header:SetPoint("TOPLEFT", table, "TOPLEFT", 0, 0)
     header:SetPoint("TOPRIGHT", table, "TOPRIGHT", 0, 0)
@@ -175,14 +207,30 @@ function Builder.CreateTableHeader(table)
     local left = 0
     local keyPrefix = "recordFrameTableHeader"
     local remainWidth = header:GetWidth()
-    for _, col in ipairs(TABLE_COLS) do
-        local button = Template.CreateTableHeaderButton(header, L[keyPrefix..col.name:gsub("^%l", string.upper)], 30,
+    for i, col in ipairs(TABLE_COLS) do
+        -- 序号的位置是一个CheckButton
+        if i == 1 then
+            local selectAllBtn = CreateFrame("CheckButton", nil, header, "ChatConfigCheckButtonTemplate")
+            selectAllBtn:SetPoint("LEFT", header, "LEFT", (col.width - TABLE_ROW_CHECK_BTN_SIZE) / 2, 0)
+            selectAllBtn:SetSize(TABLE_ROW_CHECK_BTN_SIZE, TABLE_ROW_CHECK_BTN_SIZE)
+            selectAllBtn:SetChecked(false)
+            selectAllBtn:SetScript("OnClick", function ()
+                if selectAllBtn:GetChecked() then
+                    Action.OnActionSelectAllClick()
+                else
+                    Action.OnActionSelectClearClick()
+                end
+            end)
+            frame.selectAllBtn = selectAllBtn
+        else
+            local button = Template.CreateTableHeaderButton(header, L[keyPrefix..col.name:gsub("^%l", string.upper)], 30,
             col.width == -1 and remainWidth or col.width)
-        button:SetPoint("LEFT", header, "LEFT", left, 0)
+            button:SetPoint("LEFT", header, "LEFT", left, 0)
+        end
         left = left + col.width
         remainWidth = remainWidth - col.width
     end
-    table.header = header
+    frame.tabHeader = header
 end
 
 -- 创建表格行
@@ -197,6 +245,16 @@ function Builder.CreateTableRow(table)
         string:SetTextColor(1, 1, 1, 0.8)
         left = left + TABLE_COLS[i].width
         row[TABLE_COLS[i].name] = string
+        -- 在序号的位置创建一个隐藏的CheckButton
+        if i == 1 then
+            local checkBtn = CreateFrame("CheckButton", nil, row, "ChatConfigCheckButtonTemplate")
+            checkBtn:SetPoint("LEFT", row, "LEFT", (TABLE_COLS[1].width - TABLE_ROW_CHECK_BTN_SIZE) / 2, 0)
+            checkBtn:SetSize(TABLE_ROW_CHECK_BTN_SIZE, TABLE_ROW_CHECK_BTN_SIZE)
+            checkBtn:SetChecked(false)
+            checkBtn:EnableMouse(false)
+            checkBtn:Hide()
+            row.checkBtn = checkBtn
+        end
     end
     return row
 end
@@ -230,7 +288,9 @@ function Data.GetTotalPage()
 end
 
 function Data.UpdatePagination()
-    Frame.pagination:SetText(format("%d/%d", CurPage, Data.GetTotalPage()))
+    Frame.pageBtn:SetText(format("%d/%d", CurPage, Data.GetTotalPage()))
+    Frame.pageBtn:SetWidth(Frame.pageBtn:GetTextWidth() + 16 < ACTION_BAR_HEIGHT
+        and ACTION_BAR_HEIGHT or Frame.pageBtn:GetTextWidth() + 16)
 end
 
 -- 根据目前的（排序、筛选、翻页等）条件刷新要显示的数据
@@ -240,6 +300,31 @@ function Data.UpdateCurRecords()
     local size = #TradeLoggerDB.tradeRecord
     for i = size, 1, -1 do
         tinsert(CurRecords, TradeLoggerDB.tradeRecord[i])
+    end
+end
+
+-- 判断record在不在SelectedRecords中
+function Data.IsRecordSelected(record)
+    for _, r in ipairs(SelectedRecords) do
+        if r.timestamp == record.timestamp then
+            return true
+        end
+    end
+    return false
+end
+
+function Data.SelectRecord(record)
+    if not Data.IsRecordSelected(record) then
+        tinsert(SelectedRecords, record)
+    end
+end
+
+function Data.UnselectRecord(record)
+    for i = #SelectedRecords, 1, -1 do
+        if SelectedRecords[i].timestamp == record.timestamp then
+            tremove(SelectedRecords, i)
+            return
+        end
     end
 end
 
@@ -257,7 +342,13 @@ function Data.ClearTableData()
         local row = Frame.table.rows[i]
         for _, col in ipairs(TABLE_COLS) do
             row[col.name]:SetText("")
-            row:SetScript("OnMouseUp", nil)
+            row.selected = false
+            row.checkBtn:SetChecked(false)
+            row.checkBtn:Hide()
+            row:SetBackdropColor(0, 0, 0, 0)
+            row:SetScript("OnEnter", nil)
+            row:SetScript("OnLeave", nil)
+            row:SetScript("OnMouseDown", nil)
             row:Disable()
         end
     end
@@ -266,9 +357,22 @@ end
 -- 根据交易记录填充行数据
 function Data.SetRowText(row, record, index)
     row:Enable()
-    -- serial
+    row.record = record
+    -- serial & checkBtn
     row.serial:SetFont(STANDARD_TEXT_FONT, 12)
     row.serial:SetText(index)
+    local isSelected = Data.IsRecordSelected(record)
+    row.selected = isSelected
+    row.checkBtn:SetChecked(isSelected)
+    if isSelected then
+        row:SetBackdropColor(1, 1, 1, 0.15)
+        row.serial:Hide()
+        row.checkBtn:Show()
+    else
+        row:SetBackdropColor(0, 0, 0, 0)
+        row.serial:Show()
+        row.checkBtn:Hide()
+    end
     -- time
     row.time:SetFont(STANDARD_TEXT_FONT, 12)
     row.time:SetText(date("%Y-%m-%d %H:%M:%S", record.timestamp))
@@ -304,19 +408,19 @@ function Data.SetRowText(row, record, index)
     row.receiveItems:SetText(Data.GetRecordItemsDesc(record.receiveItems))
     row.receiveItems:SetNonSpaceWrap(false)
     row.receiveItems:SetMaxLines(1)
-    -- tooltip
-    Data.SetItemTooltip(row, record)
+    -- hover & click & etc.
+    Data.SetRowHover(row, record)
+    Data.SetRowClick(row, record)
 end
 
 -- 设置鼠标提示
-function Data.SetItemTooltip(row, record)
-    if #record.giveItems == 0 and #record.receiveItems == 0 then
-        row.OnHover = nil
-        return
-    end
+function Data.SetRowHover(row, record)
     local tip = Frame.detailTooltip
-    row.OnHover = function (isEnter)
-        if isEnter then
+    row:SetScript("OnEnter", function(self)
+        self:SetBackdropColor(1, 1, 1, 0.15)
+        row.serial:Hide()
+        row.checkBtn:Show()
+        if #record.giveItems > 0 or #record.receiveItems > 0 then
             tip:SetOwner(row, "ANCHOR_NONE")
             tip:SetPoint("LEFT", row, "RIGHT", TABLE_MARGIN_H + 2, 0)
             tip:ClearLines()
@@ -336,9 +440,49 @@ function Data.SetItemTooltip(row, record)
                 end
             end
             tip:Show()
-        else
-            tip:Hide()
+            return
         end
+    end)
+    row:SetScript("OnLeave", function(self)
+        if not row.selected then
+            self:SetBackdropColor(0, 0, 0, 0)
+            row.serial:Show()
+            row.checkBtn:Hide()
+        end
+        tip:Hide()
+    end)
+end
+
+-- 设置行点击
+function Data.SetRowClick(row, record)
+    row:SetScript("OnMouseDown", function (self, button)
+        if button == "LeftButton" then
+            if row.selected then
+                Data.UnselectRecord(record)
+            else
+                Data.SelectRecord(record)
+            end
+            row.selected = not row.selected
+            row.checkBtn:SetChecked(row.selected)
+            Data.UpdateSelectActionBtn()
+        end
+    end)
+end
+
+function Data.UpdateSelectActionBtn()
+    if #SelectedRecords == 0 then
+        Frame.actionPanel1:Show()
+        Frame.actionPanel2:Hide()
+        Frame.selectAllBtn:SetChecked(false)
+    else
+        local all = #CurRecords
+        local selected = #SelectedRecords
+        local text = format(L["recordFrameActionBtnSelect"], selected, all)
+        Frame.selectActionBtn:SetText(text)
+        Frame.selectActionBtn:SetWidth(Frame.selectActionBtn:GetTextWidth() + 16)
+        Frame.actionPanel1:Hide()
+        Frame.actionPanel2:Show()
+        Frame.selectAllBtn:SetChecked(selected == all)
     end
 end
 
@@ -384,6 +528,30 @@ function Action.OnActionNextClick()
     end
 end
 
+function Action.OnActionSelectAllClick()
+    for _, record in ipairs(CurRecords) do
+        Data.SelectRecord(record)
+    end
+    Data.UpdateSelectActionBtn()
+    Data.ClearTableData()
+    Data.ShowTableData()
+end
+
+function Action.OnActionSelectClearClick()
+    SelectedRecords = {}
+    Data.UpdateSelectActionBtn()
+    Data.ClearTableData()
+    Data.ShowTableData()
+end
+
+function Action.OnActionFilterClick()
+    -- TODO
+end
+
+function Action.OnActionSearchClick()
+    -- TODO
+end
+
 function Action.OnFrameShow()
     if not Dirty then
         return
@@ -392,12 +560,14 @@ function Action.OnFrameShow()
     Data.ClearTableData()
     Data.UpdateCurRecords()
     Data.UpdatePagination()
+    Data.UpdateSelectActionBtn()
     Data.ShowTableData()
     Dirty = false
 end
 
 function Action.OnFrameHide()
-    if CurPage ~= 1 then
+    if CurPage ~= 1 or #SelectedRecords > 0 then
+        SelectedRecords = {}
         Dirty = true
     end
 end
