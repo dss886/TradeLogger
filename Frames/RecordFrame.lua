@@ -33,7 +33,7 @@ local Action = {}
 local Builder = {}
 
 ----------------------------------------
---               UI初始化             --
+--              UI初始化               --
 ----------------------------------------
 
 -- 创建主窗口
@@ -222,7 +222,7 @@ function Builder.CreateDescription(frame)
 end
 
 ----------------------------------------
---              数据函数              --
+--              数据函数               --
 ----------------------------------------
 
 function Data.GetTotalPage()
@@ -363,7 +363,7 @@ function Data.GetRecordItemsDesc(items)
 end
 
 ----------------------------------------
---              逻辑函数              --
+--              逻辑函数               --
 ----------------------------------------
 
 function Action.OnActionPreClick()
@@ -414,7 +414,7 @@ function Action.ToggleRecordFrame()
 end
 
 ----------------------------------------
---              注册事件              --
+--              注册事件               --
 ----------------------------------------
 
 EventBus.Register("TL_TOGGLE_RECORD_FRAME", Action.ToggleRecordFrame)

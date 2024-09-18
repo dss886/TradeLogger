@@ -5,7 +5,7 @@ local Logger = Addon.Logger;
 local EventBus = Addon.EventBus;
 
 ----------------------------------------
---        一些数据操作用的工具函数      --
+--        一些数据操作用的工具函数        --
 ----------------------------------------
 
 local function GetRecentTrade()
@@ -35,7 +35,7 @@ local function AddTradeListToToolTip(tooltip, tradeList)
 end
 
 ----------------------------------------
---          LDB配置（如果可用）        --
+--          LDB配置（如果可用）          --
 ----------------------------------------
 
 local function InitLDB()
@@ -73,7 +73,7 @@ local function InitLDB()
 end
 
 ----------------------------------------
---               初始化               --
+--               初始化                --
 ----------------------------------------
 
 EventBus.Register("ADDON_LOADED", function(name)

@@ -5,7 +5,7 @@ local CallbackCenter = {};
 local CUSTOM_EVENT_PREFIX = "TL_";
 
 ----------------------------------------
---            事件代理函数             --
+--             事件代理函数             --
 ----------------------------------------
 
 local EventFrame = CreateFrame("Frame", nil)
@@ -15,7 +15,7 @@ EventFrame:SetScript("OnEvent", function(self, event, ...)
 end)
 
 ----------------------------------------
---            外部接口函数             --
+--             外部接口函数             --
 ----------------------------------------
 
 function EventBus.Register(event, callback)
@@ -56,7 +56,7 @@ function EventBus.Post(event, ...)
 end
 
 ----------------------------------------
---        对其他模块暴露的接口         --
+--         对其他模块暴露的接口          --
 ----------------------------------------
 
 Addon.EventBus = EventBus;

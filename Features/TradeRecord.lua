@@ -7,7 +7,7 @@ local CurrentTrade
 local tinsert = table.insert
 
 ----------------------------------------
---              工具函数              --
+--              工具函数               --
 ----------------------------------------
 
 local function CreateNewTrade()
@@ -64,7 +64,7 @@ local function GetTradeDetailDesc()
 end
 
 ----------------------------------------
---             交易流程事件            --
+--             交易流程事件             --
 ----------------------------------------
 
 local function OnTradeShow()
@@ -93,7 +93,7 @@ local function OnTradeCancel()
 end
 
 ----------------------------------------
---             交易数据事件            --
+--             交易数据事件             --
 ----------------------------------------
 
 local function OnTradePlayerItemChanged(slotIndex)
@@ -151,7 +151,7 @@ local function OnTradeAcceptUpdate(playerAccepted, targetAccepted)
 end
 
 ----------------------------------------
---            处理交易结果             --
+--             处理交易结果             --
 ----------------------------------------
 
 local function LogTradeResult(result, reason)
@@ -212,7 +212,7 @@ local function HandleTradeResult()
 end
 
 ----------------------------------------
---             交易结束事件            --
+--             交易结束事件             --
 ----------------------------------------
 
 local function OnUiErrorMessage(_, msg)
@@ -243,7 +243,7 @@ local function OnUiInfoMessage(_, msg)
 end
 
 ----------------------------------------
---              注册事件              --
+--              注册事件               --
 ----------------------------------------
 
 EventBus.Register("TRADE_SHOW", OnTradeShow);

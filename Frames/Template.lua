@@ -5,7 +5,7 @@ local Template = {
 }
 
 ----------------------------------------
---         定义UI模板创建函数          --
+--          定义UI模板创建函数           --
 ----------------------------------------
 
 function Template.CreateBackDropFrame(name, parent, bgColor, borderColor)
@@ -104,7 +104,7 @@ function Template.CreateTableRow(parent, height)
 end
 
 ----------------------------------------
---        对其他模块暴露的接口         --
+--         对其他模块暴露的接口          --
 ----------------------------------------
 
 Addon.Template = Template;

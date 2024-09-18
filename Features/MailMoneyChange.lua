@@ -25,7 +25,7 @@ local function OnMailClosed()
 end
 
 ----------------------------------------
---              注册事件              --
+--               注册事件              --
 ----------------------------------------
 
 EventBus.Register("MAIL_SHOW", OnMailShow);

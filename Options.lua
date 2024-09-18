@@ -7,7 +7,7 @@ local EventBus = Addon.EventBus;
 local Options;
 
 ----------------------------------------
---            添加SLASH命令           --
+--            添加SLASH命令            --
 ----------------------------------------
 
 local function addSlashCmd()
@@ -20,7 +20,7 @@ local function addSlashCmd()
 end
 
 ----------------------------------------
---             插件设置页面            --
+--             插件设置页面             --
 ----------------------------------------
 
 local function createCheckbox(key)
@@ -69,7 +69,7 @@ local function initOptions()
 end
 
 ----------------------------------------
---               初始化               --
+--               初始化                --
 ----------------------------------------
 
 EventBus.Register("ADDON_LOADED", function(name)
