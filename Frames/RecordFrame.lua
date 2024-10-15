@@ -17,13 +17,12 @@ local TABLE_COLS = {
     { name = "giveItems",  width = 180 },
     { name = "receiveItems",  width = 180 },
 }
-local TITLE_BAR_HEIGHT = 40
-local ACTION_BAR_HEIGHT = 32
+local TITLE_BAR_HEIGHT = 32
 local TABLE_ROW_HEIGHT = 32
 local TABLE_ROW_COUNT = 10
 local TABLE_ROW_CHECK_BTN_SIZE = 24
-local TABLE_MARGIN_H = 16
-local DESC_HEIGHT = 40
+local TABLE_DIVIDER = 1
+local ACTION_BAR_HEIGHT = 32
 
 local Frame
 local Dirty = true
@@ -46,17 +45,16 @@ function Builder.InitFrame()
     end
     local frame = Builder.CreateMainFrame()
     Builder.CreateTitleBar(frame)
-    Builder.CreateActionBar(frame)
     Builder.CreateTable(frame)
+    Builder.CreateActionBar(frame)
     Builder.CreateToolTip(frame)
-    Builder.CreateDescription(frame)
     Frame = frame
 end
 
 -- 创建窗口容器
 function Builder.CreateMainFrame()
     local frameName = AddonName .. "RecordFrame"
-    local frame = Template.CreateBackDropFrame(frameName, UIParent, { 0, 0, 0, 0.7 }, { 1, 1, 1, 0.5 })
+    local frame = Template.CreateBackDropFrame(frameName, UIParent, { 0, 0, 0, 0.7 })
     -- 确保不让鼠标穿透窗口
     frame:SetFrameStrata("DIALOG")
     frame:EnableMouse(true)
@@ -70,8 +68,8 @@ function Builder.CreateMainFrame()
     -- 确保窗口可以在按下Esc时关闭
     table.insert(UISpecialFrames, frameName)
     local height = TITLE_BAR_HEIGHT + ACTION_BAR_HEIGHT
-        + TABLE_ROW_HEIGHT * (TABLE_ROW_COUNT + 1) + DESC_HEIGHT
-    local width = TABLE_MARGIN_H * 2 + 2
+        + TABLE_ROW_HEIGHT * (TABLE_ROW_COUNT + 1) + TABLE_DIVIDER
+    local width = 0
     for _, col in ipairs(TABLE_COLS) do
         width = width + col.width
     end
@@ -82,7 +80,7 @@ end
 
 -- 创建标题栏
 function Builder.CreateTitleBar(frame)
-    local titleBar = Template.CreateBackDropFrame(nil, frame, { 0, 0, 0, 0.3 }, nil)
+    local titleBar = CreateFrame("Frame", nil, frame)
     titleBar:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
     titleBar:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
     titleBar:SetHeight(TITLE_BAR_HEIGHT)
@@ -104,7 +102,7 @@ function Builder.CreateTitleBar(frame)
     -- 标题
     local title = titleBar:CreateFontString(nil, "ARTWORK", "GameFontNormal")
     title:SetText("|cFF00CCFF" .. AddonName)
-    title:SetPoint("LEFT", titleBar, "LEFT", 20, 0)
+    title:SetPoint("CENTER", titleBar, "CENTER", 0, 0)
     title:SetFont(STANDARD_TEXT_FONT, 14)
     -- 版本号
     local version = titleBar:CreateFontString(nil, "ARTWORK", "GameFontNormal")
@@ -119,68 +117,12 @@ function Builder.CreateTitleBar(frame)
     frame.titleBar = titleBar
 end
 
--- 创建操作栏
-function Builder.CreateActionBar(frame)
-    -- 外层容器
-    local actionBar = CreateFrame("Frame", nil, frame)
-    actionBar:SetPoint("TOPLEFT", frame.titleBar, "BOTTOMLEFT", 0, 0)
-    actionBar:SetPoint("TOPRIGHT", frame.titleBar, "BOTTOMRIGHT", 0, 0)
-    actionBar:SetHeight(ACTION_BAR_HEIGHT)
-
-    -- pagination
-    local preBtn = Template.CreatePlainButton(actionBar,
-        L["recordFrameActionBtnPre"], ACTION_BAR_HEIGHT, Action.OnActionPreClick)
-    local nextBtn = Template.CreatePlainButton(actionBar,
-        L["recordFrameActionBtnNext"], ACTION_BAR_HEIGHT, Action.OnActionNextClick)
-    local pageBtn = Template.CreatePlainButton(actionBar, "1/1", ACTION_BAR_HEIGHT, nil)
-    pageBtn:Disable()
-    pageBtn:SetWidth(pageBtn:GetTextWidth() + 16 < ACTION_BAR_HEIGHT
-        and ACTION_BAR_HEIGHT or pageBtn:GetTextWidth() + 16)
-
-    nextBtn:SetPoint("RIGHT", actionBar, "RIGHT", -16, 0)
-    pageBtn:SetPoint("RIGHT", nextBtn, "LEFT", -8, 0)
-    preBtn:SetPoint("RIGHT", pageBtn, "LEFT", -8, 0)
-
-    -- 常驻 actionPanel
-    local actionPanel1 = CreateFrame("Frame", nil, actionBar)
-    actionPanel1:SetPoint("LEFT", actionBar, "LEFT", 16, 0)
-    actionPanel1:SetPoint("RIGHT", preBtn, "LEFT", -8, 0)
-    actionPanel1:SetHeight(ACTION_BAR_HEIGHT)
-
-    -- 选中状态的 actionPanel
-    local actionPanel2 = CreateFrame("Frame", nil, actionBar)
-    actionPanel2:SetPoint("LEFT", actionBar, "LEFT", 16, 0)
-    actionPanel2:SetPoint("RIGHT", preBtn, "LEFT", -8, 0)
-    actionPanel2:SetHeight(ACTION_BAR_HEIGHT)
-    actionPanel2:Hide()
-
-    -- 常驻按钮
-    local filterBtn = Template.CreatePlainButton(actionPanel1,
-        L["recordFrameActionBtnFilter"], ACTION_BAR_HEIGHT, Action.OnActionFilterClick)
-    local searchBtn = Template.CreatePlainButton(actionPanel1,
-        L["recordFrameActionBtnSearch"], ACTION_BAR_HEIGHT, Action.OnActionSearchClick)
-    
-    filterBtn:SetPoint("LEFT", actionPanel1, "LEFT", 0, 0)
-    searchBtn:SetPoint("LEFT", filterBtn, "RIGHT", 8, 0)
-
-    -- 选中状态下的按钮
-    local selectActionBtn = Template.CreatePlainButton(actionPanel2,
-        L["Action.OnActionSelectClearClick"], ACTION_BAR_HEIGHT, Action.OnActionSelectClearClick)
-        selectActionBtn:SetPoint("LEFT", actionPanel2, "LEFT", 0, 0)
-
-    frame.actionBar = actionBar
-    frame.pageBtn = pageBtn
-    frame.selectActionBtn = selectActionBtn
-    frame.actionPanel1 = actionPanel1
-    frame.actionPanel2 = actionPanel2
-end
-
 -- 创建表格
 function Builder.CreateTable(frame)
-    local table = Template.CreateBackDropFrame(nil, frame, { 0, 0, 0, 0.3 }, { 1, 1, 1, 0.5 })
-    table:SetPoint("TOPLEFT", frame.actionBar, "BOTTOMLEFT", TABLE_MARGIN_H, 0)
-    table:SetPoint("TOPRIGHT", frame.actionBar, "TOPRIGHT", -TABLE_MARGIN_H, 0)
-    table:SetHeight(TABLE_ROW_HEIGHT * (TABLE_ROW_COUNT + 1))
+    local table = Template.CreateBackDropFrame(nil, frame, { 0, 0, 0, 0.3 })
+    table:SetPoint("TOPLEFT", frame.titleBar, "BOTTOMLEFT", 0, 0)
+    table:SetPoint("TOPRIGHT", frame.titleBar, "TOPRIGHT", 0, 0)
+    table:SetHeight(TABLE_ROW_HEIGHT * (TABLE_ROW_COUNT + 1) + TABLE_DIVIDER)
     Builder.CreateTableHeader(frame, table)
     table.rows = {}
     for i = 1, TABLE_ROW_COUNT do
@@ -189,6 +131,10 @@ function Builder.CreateTable(frame)
         row:SetPoint("TOPRIGHT", table, "TOPRIGHT", 0, -TABLE_ROW_HEIGHT * i)
         table.rows[i] = row
     end
+    -- 分割线
+    local divider = Template.CreateDivider(table)
+    divider:SetPoint("BOTTOMLEFT", table, "BOTTOMLEFT", 1, 0)
+    divider:SetPoint("BOTTOMRIGHT", table, "BOTTOMRIGHT", -1, 0)
     frame.table = table
 end
 
@@ -199,10 +145,6 @@ function Builder.CreateTableHeader(frame, table)
     header:SetPoint("TOPRIGHT", table, "TOPRIGHT", 0, 0)
     header:SetHeight(TABLE_ROW_HEIGHT)
     header:EnableMouse(true)
-    -- 分割线
-    local divider = Template.CreateDivider(header)
-    divider:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT", 1, 0)
-    divider:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", -1, 0)
     -- 字段
     local left = 0
     local keyPrefix = "recordFrameTableHeader"
@@ -213,6 +155,7 @@ function Builder.CreateTableHeader(frame, table)
             local selectAllBtn = CreateFrame("CheckButton", nil, header, "ChatConfigCheckButtonTemplate")
             selectAllBtn:SetPoint("LEFT", header, "LEFT", (col.width - TABLE_ROW_CHECK_BTN_SIZE) / 2, 0)
             selectAllBtn:SetSize(TABLE_ROW_CHECK_BTN_SIZE, TABLE_ROW_CHECK_BTN_SIZE)
+            selectAllBtn:SetWidth(TABLE_ROW_CHECK_BTN_SIZE)
             selectAllBtn:SetChecked(false)
             selectAllBtn:SetScript("OnClick", function ()
                 if selectAllBtn:GetChecked() then
@@ -223,9 +166,9 @@ function Builder.CreateTableHeader(frame, table)
             end)
             frame.selectAllBtn = selectAllBtn
         else
-            local button = Template.CreateTableHeaderButton(header, L[keyPrefix..col.name:gsub("^%l", string.upper)], 30,
+            local string = Template.CreateTableHeader(header, L[keyPrefix..col.name:gsub("^%l", string.upper)], 30,
             col.width == -1 and remainWidth or col.width)
-            button:SetPoint("LEFT", header, "LEFT", left, 0)
+            string:SetPoint("LEFT", header, "LEFT", left, 0)
         end
         left = left + col.width
         remainWidth = remainWidth - col.width
@@ -259,24 +202,49 @@ function Builder.CreateTableRow(table)
     return row
 end
 
+-- 创建操作栏
+function Builder.CreateActionBar(frame)
+    -- 外层容器
+    local actionBar = CreateFrame("Frame", nil, frame)
+    actionBar:SetPoint("TOPLEFT", frame.table, "BOTTOMLEFT", 0, 0)
+    actionBar:SetPoint("TOPRIGHT", frame.table, "BOTTOMRIGHT", 0, 0)
+    actionBar:SetHeight(ACTION_BAR_HEIGHT)
+
+    -- -- 分割线
+    -- local divider = Template.CreateDivider(actionBar)
+    -- divider:SetPoint("TOPLEFT", actionBar, "TOPLEFT", 1, 0)
+    -- divider:SetPoint("TOPRIGHT", actionBar, "TOPRIGHT", -1, 0)
+
+    -- pagination
+    local preBtn = Template.CreatePlainButton(actionBar,
+        L["recordFrameActionBtnPre"], ACTION_BAR_HEIGHT, Action.OnActionPreClick)
+    local nextBtn = Template.CreatePlainButton(actionBar,
+        L["recordFrameActionBtnNext"], ACTION_BAR_HEIGHT, Action.OnActionNextClick)
+    local pageBtn = Template.CreatePlainButton(actionBar, "1/1", ACTION_BAR_HEIGHT, nil)
+    pageBtn:Disable()
+    pageBtn:SetWidth(pageBtn:GetTextWidth() + 16 < ACTION_BAR_HEIGHT
+        and ACTION_BAR_HEIGHT or pageBtn:GetTextWidth() + 16)
+
+    nextBtn:SetPoint("RIGHT", actionBar, "RIGHT", 0, 0)
+    pageBtn:SetPoint("RIGHT", nextBtn, "LEFT", -8, 0)
+    preBtn:SetPoint("RIGHT", pageBtn, "LEFT", -8, 0)
+
+    -- 选中状态下的按钮
+    local selectActionBtn = Template.CreatePlainButton(actionBar,
+        L["Action.OnActionSelectClearClick"], ACTION_BAR_HEIGHT, Action.OnActionSelectClearClick)
+    selectActionBtn:SetPoint("LEFT", actionBar, "LEFT", 0, 0)
+    selectActionBtn:Hide()
+
+    frame.actionBar = actionBar
+    frame.pageBtn = pageBtn
+    frame.selectActionBtn = selectActionBtn
+end
+
 -- 创建鼠标提示
 function Builder.CreateToolTip(frame)
     local name = AddonName .. "RecordFrameListTooltip"
     frame.detailTooltip = CreateFrame("GameTooltip", name, UIParent, "GameTooltipTemplate")
     frame.detailTooltip:Hide()
-end
-
--- 创建描述
-function Builder.CreateDescription(frame)
-    local desc = frame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    desc:SetText(L["recordFrameTip1"])
-    desc:SetHeight(DESC_HEIGHT)
-    desc:SetJustifyH("LEFT")
-    desc:SetJustifyV("CENTER")
-    desc:SetPoint("TOPLEFT", frame.table, "BOTTOMLEFT", 4, 0)
-    desc:SetFont(STANDARD_TEXT_FONT, 11)
-    desc:SetTextColor(1, 1, 1, 0.5)
-    frame.desc = desc
 end
 
 ----------------------------------------
@@ -422,7 +390,7 @@ function Data.SetRowHover(row, record)
         row.checkBtn:Show()
         if #record.giveItems > 0 or #record.receiveItems > 0 then
             tip:SetOwner(row, "ANCHOR_NONE")
-            tip:SetPoint("LEFT", row, "RIGHT", TABLE_MARGIN_H + 2, 0)
+            tip:SetPoint("LEFT", row, "RIGHT", 2, 0)
             tip:ClearLines()
             if #record.giveItems > 0 then
                 tip:AddLine(L["recordFrameTooltipGiveItems"], 1, 1, 1)
@@ -471,8 +439,7 @@ end
 
 function Data.UpdateSelectActionBtn()
     if #SelectedRecords == 0 then
-        Frame.actionPanel1:Show()
-        Frame.actionPanel2:Hide()
+        Frame.selectActionBtn:Hide()
         Frame.selectAllBtn:SetChecked(false)
     else
         local all = #CurRecords
@@ -480,8 +447,7 @@ function Data.UpdateSelectActionBtn()
         local text = format(L["recordFrameActionBtnSelect"], selected, all)
         Frame.selectActionBtn:SetText(text)
         Frame.selectActionBtn:SetWidth(Frame.selectActionBtn:GetTextWidth() + 16)
-        Frame.actionPanel1:Hide()
-        Frame.actionPanel2:Show()
+        Frame.selectActionBtn:Show()
         Frame.selectAllBtn:SetChecked(selected == all)
     end
 end

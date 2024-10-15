@@ -8,7 +8,7 @@ local Template = {
 --          定义UI模板创建函数           --
 ----------------------------------------
 
-function Template.CreateBackDropFrame(name, parent, bgColor, borderColor)
+function Template.CreateBackDropFrame(name, parent, bgColor)
     local frame = CreateFrame("Frame", name, parent, "BackdropTemplate")
     frame:SetBackdrop({ 
         bgFile = Template.SOLID,
@@ -20,12 +20,9 @@ function Template.CreateBackDropFrame(name, parent, bgColor, borderColor)
     })
     if bgColor then
         frame:SetBackdropColor(unpack(bgColor))
+        frame:SetBackdropBorderColor(unpack(bgColor))
     else
         frame:SetBackdropColor(0, 0, 0, 0)
-    end
-    if borderColor then
-        frame:SetBackdropBorderColor(unpack(borderColor))
-        else
         frame:SetBackdropBorderColor(0, 0, 0, 0)
     end
     return frame
@@ -34,7 +31,7 @@ end
 function Template.CreateDivider(parent)
     local divider = parent:CreateTexture(nil, "ARTWORK")
     divider:SetTexture(Template.SOLID)
-    divider:SetVertexColor(1, 1, 1, 0.5)
+    divider:SetVertexColor(1, 1, 1, 0.2)
     divider:SetHeight(1)
     return divider
 end
@@ -62,19 +59,13 @@ function Template.CreatePlainButton(parent, text, height, onClick)
     return button
 end
 
-function Template.CreateTableHeaderButton(parent, text, height, width)
-    local button = CreateFrame("Button", nil, parent)
-    button:SetNormalFontObject("GameFontNormal")
-    button:SetHighlightFontObject("GameFontHighlight")
-    button:SetHighlightTexture(Template.CreateSolidTexture(button, 1, 1, 1, 0.15))
-    button:GetNormalFontObject():SetTextColor(1, 1, 1, 0.87)
-    button:GetNormalFontObject():SetFont(STANDARD_TEXT_FONT, 13, "")
-    button:GetHighlightFontObject():SetTextColor(1, 1, 1, 1)
-    button:GetHighlightFontObject():SetFont(STANDARD_TEXT_FONT, 13, "")
-    button:SetText(text)
-    button:SetHeight(height)
-    button:SetWidth(width)
-    return button
+function Template.CreateTableHeader(parent, text, height, width)
+    local string = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+    string:SetText(text)
+    string:SetHeight(height)
+    string:SetWidth(width)
+    string:SetTextColor(1, 1, 1, 0.8)
+    return string
 end
 
 function Template.CreateTableRow(parent, height)
