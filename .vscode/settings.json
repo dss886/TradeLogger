@@ -12,6 +12,9 @@
     "UISpecialFrames",
     "STANDARD_TEXT_FONT",
     "InterfaceOptions_AddCategory",
-    "InterfaceOptionsFrame_OpenToCategory"
+    "InterfaceOptionsFrame_OpenToCategory",
+    "EasyMenu",
+    "StaticPopupDialogs",
+    "StaticPopup_Show",
   ]
 }

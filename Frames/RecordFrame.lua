@@ -242,9 +242,13 @@ end
 
 -- 创建鼠标提示
 function Builder.CreateToolTip(frame)
-    local name = AddonName .. "RecordFrameListTooltip"
-    frame.detailTooltip = CreateFrame("GameTooltip", name, UIParent, "GameTooltipTemplate")
+    local detailName = AddonName .. "RecordFrameListTooltip"
+    frame.detailTooltip = CreateFrame("GameTooltip", detailName, UIParent, "GameTooltipTemplate")
     frame.detailTooltip:Hide()
+
+    local menuName = AddonName .. "RecordFrameContextMenu"
+    local contextMenu = CreateFrame("Frame", menuName, UIParent, "UIDropDownMenuTemplate")
+    frame.contextMenu = contextMenu
 end
 
 ----------------------------------------
@@ -424,7 +428,7 @@ end
 -- 设置行点击
 function Data.SetRowClick(row, record)
     row:SetScript("OnMouseDown", function (self, button)
-        if button == "LeftButton" then
+        if button == "LeftButton" or (button == "RightButton" and not row.selected) then
             if row.selected then
                 Data.UnselectRecord(record)
             else
@@ -433,6 +437,16 @@ function Data.SetRowClick(row, record)
             row.selected = not row.selected
             row.checkBtn:SetChecked(row.selected)
             Data.UpdateSelectActionBtn()
+        end
+        if button == "RightButton" then
+            local count = #SelectedRecords
+            local menu = {
+                {
+                    text = L["recordFrameActionDeleteRecord"],
+                    func = function() Action.OnActionDeleteClick(count); end
+                },
+            }
+            EasyMenu(menu, Frame.contextMenu, "cursor", 0, 0, "MENU")
         end
     end)
 end
@@ -510,12 +524,38 @@ function Action.OnActionSelectClearClick()
     Data.ShowTableData()
 end
 
-function Action.OnActionFilterClick()
-    -- TODO
-end
-
-function Action.OnActionSearchClick()
-    -- TODO
+function Action.OnActionDeleteClick(count)
+    if #SelectedRecords ~= count then
+        return
+    end
+    StaticPopupDialogs["OnActionDeleteClickDialog"] = {
+        text = format(L["recordFrameActionDeleteConfirm"], count),
+        button1 = L["recordFrameActionDeleteConfirmOk"],
+        button2 = L["recordFrameActionDeleteConfirmCancel"],
+        OnAccept = function()
+            for _, record in ipairs(SelectedRecords) do
+                for i = #TradeLoggerDB.tradeRecord, 1, -1 do
+                    if TradeLoggerDB.tradeRecord[i].timestamp == record.timestamp then
+                        tremove(TradeLoggerDB.tradeRecord, i)
+                        break
+                    end
+                end
+            end
+            SelectedRecords = {}
+            Data.ClearTableData()
+            Data.UpdateCurRecords()
+            if CurPage > Data.GetTotalPage() then
+                CurPage = Data.GetTotalPage()
+            end
+            Data.UpdatePagination()
+            Data.UpdateSelectActionBtn()
+            Data.ShowTableData()
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+    }
+    StaticPopup_Show("OnActionDeleteClickDialog")
 end
 
 function Action.OnFrameShow()
