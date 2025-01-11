@@ -26,13 +26,11 @@ local DEFAULT_CONFIG = {
     ["enableTradeRecord"] = true,
     ["enableTradeConsoleLog"] = true,
     ["enableTradeWhisper"] = true,
-    ["enableMailRecord"] = true,
-    ["enableMailConsoleLog"] = true,
     ["enableMailMoneyChange"] = true,
 }
 
 local DEFAULT_DB = {
-    ["version"] = 2,
+    ["version"] = 3,
     ["config"] = DEFAULT_CONFIG,
     ["tradeRecord"] = {},
 }

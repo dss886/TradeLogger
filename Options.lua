@@ -49,9 +49,6 @@ local function initOptions()
     local enableTradeRecord = createCheckbox("enableTradeRecord")
     local enableTradeConsoleLog = createCheckbox("enableTradeConsoleLog")
     local enableTradeWhisper = createCheckbox("enableTradeWhisper")
-
-    local enableMailRecord = createCheckbox("enableMailRecord")
-    local enableMailConsoleLog = createCheckbox("enableMailConsoleLog")
     local enableMailMoneyChange = createCheckbox("enableMailMoneyChange")
 
     local xStart = 16;
@@ -62,10 +59,7 @@ local function initOptions()
     enableTradeRecord:SetPoint("TOPLEFT", xStart, yStart)
     enableTradeConsoleLog:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 1)
     enableTradeWhisper:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 2)
-
-    enableMailRecord:SetPoint("TOPLEFT", xStart, yStart - ySpace * 3)
-    enableMailConsoleLog:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 4)
-    enableMailMoneyChange:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 5)
+    enableMailMoneyChange:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 3)
 end
 
 ----------------------------------------

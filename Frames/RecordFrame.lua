@@ -210,11 +210,6 @@ function Builder.CreateActionBar(frame)
     actionBar:SetPoint("TOPRIGHT", frame.table, "BOTTOMRIGHT", 0, 0)
     actionBar:SetHeight(ACTION_BAR_HEIGHT)
 
-    -- -- 分割线
-    -- local divider = Template.CreateDivider(actionBar)
-    -- divider:SetPoint("TOPLEFT", actionBar, "TOPLEFT", 1, 0)
-    -- divider:SetPoint("TOPRIGHT", actionBar, "TOPRIGHT", -1, 0)
-
     -- pagination
     local preBtn = Template.CreatePlainButton(actionBar,
         L["recordFrameActionBtnPre"], ACTION_BAR_HEIGHT, Action.OnActionPreClick)
