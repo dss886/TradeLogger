@@ -45,4 +45,5 @@ addon.L = {
     ["recordFrameTableTypeMail"] = "邮件",
     ["recordFrameTooltipGiveItems"] = "交出物品",
     ["recordFrameTooltipReceiveItems"] = "收到物品",
+    ["recordFrameTooltipItemCount"] = "共 %d 件",
 }

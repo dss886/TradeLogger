@@ -397,7 +397,12 @@ function Data.SetRowHover(row, record)
             tip:SetPoint("LEFT", row, "RIGHT", 2, 0)
             tip:ClearLines()
             if #record.giveItems > 0 then
-                tip:AddLine(L["recordFrameTooltipGiveItems"], 1, 1, 1)
+                if #record.receiveItems > 1 then
+                    local itemCountStr = format(L["recordFrameTooltipItemCount"], #record.giveItems)
+                    tip:AddDoubleLine(L["recordFrameTooltipGiveItems"], itemCountStr, 1, 1, 1, 1, 1, 1)
+                else
+                    tip:AddLine(L["recordFrameTooltipGiveItems"], 1, 1, 1)
+                end
                 for _, item in ipairs(record.giveItems) do
                     tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
                 end
@@ -406,7 +411,12 @@ function Data.SetRowHover(row, record)
                 if #record.giveItems > 0 then
                     tip:AddLine(" ")
                 end
-                tip:AddLine(L["recordFrameTooltipReceiveItems"], 1, 1, 1)
+                if #record.receiveItems > 1 then
+                    local itemCountStr = format(L["recordFrameTooltipItemCount"], #record.receiveItems)
+                    tip:AddDoubleLine(L["recordFrameTooltipReceiveItems"], itemCountStr, 1, 1, 1, 1, 1, 1)
+                else
+                    tip:AddLine(L["recordFrameTooltipReceiveItems"], 1, 1, 1)
+                end
                 for _, item in ipairs(record.receiveItems) do
                     tip:AddDoubleLine(item.itemLink, "x"..item.count, 1, 1, 1, 1, 1, 1)
                 end
