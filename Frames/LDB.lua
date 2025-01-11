@@ -5,7 +5,7 @@ local Logger = Addon.Logger;
 local EventBus = Addon.EventBus;
 
 ----------------------------------------
---        一些数据操作用的工具函数        --
+--             一些工具函数             --
 ----------------------------------------
 
 local function GetRecentTrade()
@@ -34,8 +34,27 @@ local function AddTradeListToToolTip(tooltip, tradeList)
     end
 end
 
+function OnTooltipShow(tooltip)
+    local recentTrade = GetRecentTrade()
+    tooltip:AddDoubleLine(L["ldbTooltipRecentTradeTitle"], #recentTrade > 0
+        and format(L["ldbTooltipRecentTradeCount"], #recentTrade)
+        or L["ldbTooltipRecentTradeNone"])
+    AddTradeListToToolTip(tooltip, recentTrade)
+    tooltip:AddLine(" ")
+    tooltip:AddLine(L["ldbTooltipDesc1"])
+    tooltip:AddLine(L["ldbTooltipDesc2"])
+end
+
+function OnClick(self, button)
+    if button == "LeftButton" then
+        EventBus.Post("TL_TOGGLE_RECORD_FRAME")
+    elseif button == "RightButton" then
+        Settings.OpenToCategory(AddonName)
+    end
+end
+
 ----------------------------------------
---          LDB配置（如果可用）          --
+--               LDB配置               --
 ----------------------------------------
 
 local function InitLDB()
@@ -51,24 +70,27 @@ local function InitLDB()
 
         if not plugin then return end
 
-        function plugin.OnTooltipShow(tooltip)
-            local recentTrade = GetRecentTrade()
-            tooltip:AddDoubleLine(L["ldbTooltipRecentTradeTitle"], #recentTrade > 0
-                and format(L["ldbTooltipRecentTradeCount"], #recentTrade)
-                or L["ldbTooltipRecentTradeNone"])
-            AddTradeListToToolTip(tooltip, recentTrade)
-            tooltip:AddLine(" ")
-            tooltip:AddLine(L["ldbTooltipDesc1"])
-            tooltip:AddLine(L["ldbTooltipDesc2"])
-        end
+        plugin.OnClick = OnClick
+        plugin.OnTooltipShow = OnTooltipShow
+    end
+end
 
-        function plugin.OnClick(self, button)
-            if button == "LeftButton" then
-                EventBus.Post("TL_TOGGLE_RECORD_FRAME")
-            elseif button == "RightButton" then
-                Settings.OpenToCategory(AddonName)
-            end
-        end
+----------------------------------------
+--            小地图图标配置            --
+----------------------------------------
+
+local function InitMinimap()
+    if LibStub and LibStub:GetLibrary("LibDBIcon-1.0", true) then
+        local ldi = LibStub("LibDBIcon-1.0")
+        ldi:Register(AddonName,
+        {
+            type = "launcher",
+            text = AddonName,
+            icon = "Interface\\Icons\\inv_misc_coin_02",
+            OnClick = OnClick,
+            OnTooltipShow = OnTooltipShow,
+        },{});
+        ldi:Show("TalentEmu");
     end
 end
 
@@ -79,5 +101,6 @@ end
 EventBus.Register("ADDON_LOADED", function(name)
     if name == AddonName then
         InitLDB()
+        InitMinimap()
 	end
 end)

@@ -4,6 +4,8 @@
 ## Version: 0.1.0
 ## SavedVariables: TradeLoggerDB
 
+Libs\libs.xml
+
 # Locales\enUS.lua
 Locales\zhCN.lua
 # Locales\zhTW.lua
