@@ -2,6 +2,7 @@ local _, Addon = ...
 local L = Addon.L
 local Logger = Addon.Logger
 local EventBus = Addon.EventBus
+local StringUtils = Addon.StringUtils
 
 local CurrentTrade
 local tinsert = table.insert
@@ -38,8 +39,8 @@ local function GetTradeDetailDesc()
         return ""
     end
     local desc = ""
-    local give = L["tradeRecordDescGive"]
-    local receive = L["tradeRecordDescReceive"]
+    local give = L["recordReportMoneyGive"]
+    local receive = L["recordReportMoneyReceive"]
     if CurrentTrade.giveMoney > 0 then
         desc = desc .. format(give, GetMoneyString(CurrentTrade.giveMoney))
     end
@@ -161,11 +162,11 @@ local function LogTradeResult(result, reason)
     local color = RAID_CLASS_COLORS[CurrentTrade.targetClass]
     local name = format("|c%s%s|r", color.colorStr, CurrentTrade.targetName)
     if result == "error" then
-        Logger.Debug(format(L["tradeRecordError"], name, reason))
+        Logger.Info(format(L["tradeRecordError"], name, reason))
     elseif result == "cancel" then
-        Logger.Debug(format(L["tradeRecordCancel"], name, reason))
+        Logger.Info(format(L["tradeRecordCancel"], name, reason))
     elseif result == "complete" then
-        Logger.Debug(format(L["tradeRecordComplete"], name) .. GetTradeDetailDesc())
+        Logger.Info(format(L["tradeRecordComplete"], name) .. GetTradeDetailDesc())
     end
 end
 

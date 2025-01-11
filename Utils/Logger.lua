@@ -9,7 +9,7 @@ Logger.LEVEL = {
     ["ERROR"] = 3,
 }
 
-Logger.logLevel = Logger.LEVEL.DEBUG;
+Logger.logLevel = Logger.LEVEL.INFO;
 
 local LEVEL_COLOR = {
     ["DEBUG"] = "|cFFBBBBBB",

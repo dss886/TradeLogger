@@ -45,16 +45,16 @@ function StringUtils.getTradeReportString(record)
     local diffMoney = record.receiveMoney - record.giveMoney
     local money = ""
     if diffMoney > 0 then
-        money = "，"..format(L["recordReportMoneyGain"], StringUtils.formatMoneyString(diffMoney))
+        money = ", "..format(L["recordReportMoneyReceive"], StringUtils.formatMoneyString(diffMoney))
     elseif diffMoney < 0 then
-        money = "，"..format(L["recordReportMoneyLose"], StringUtils.formatMoneyString(-diffMoney))
+        money = ", "..format(L["recordReportMoneyGive"], StringUtils.formatMoneyString(-diffMoney))
     end
     local items = ""
     if #record.giveItems > 0 then
-        items = "，"..items .. format(L["recordReportMoneyLose"], StringUtils.formatItemString(record.giveItems))
+        items = ", "..items .. format(L["recordReportMoneyGive"], StringUtils.formatItemString(record.giveItems))
     end
     if #record.receiveItems > 0 then
-        items = "，"..items..format(L["recordReportMoneyGain"], StringUtils.formatItemString(record.receiveItems))
+        items = ", "..items..format(L["recordReportMoneyReceive"], StringUtils.formatItemString(record.receiveItems))
     end
     local content = format(L["recordReportTemplate"],
         time, player, target, location, money, items)

@@ -1,11 +1,12 @@
 local _, addon = ...
 
+if GetLocale() ~= "zhCN" then return end
+
 addon.L = {
     ["title"] = "交易记录",
     ["bindingNameToggle"] = "打开/关闭交易记录窗口",
     ["enableTradeRecord"] = "启用交易记录功能",
     ["enableTradeConsoleLog"] = "聊天窗输出交易详情",
-    ["enableTradeWhisper"] = "启用交易密语通报",
     ["enableMailMoneyChange"] = "启用邮件金币变动报告",
     ["mailMoneyChangeIncr"] = "本次邮件操作获得 |cFFFFFFFF%s|r",
     ["mailMoneyChangeDecr"] = "本次邮件操作失去 |cFFFFFFFF%s|r",
@@ -17,8 +18,6 @@ addon.L = {
     ["tradeRecordError"] = "|cFFE5B200与[%s]的交易失败: %s",
     ["tradeRecordCancel"] = "|cFFE5B200与[%s]的交易取消: %s",
     ["tradeRecordComplete"] = "|cFFE5B200与[%s]的交易成功。",
-    ["tradeRecordDescGive"] = "交出%s。",
-    ["tradeRecordDescReceive"] = "收到%s。",
     ["tradeRecordCancelReasonSelf"] = "我取消了交易",
     ["tradeRecordCancelReasonSelfTooFar"] = "我超出了距离",
     ["tradeRecordCancelReasonTarget"] = "对方取消了交易",
@@ -53,8 +52,8 @@ addon.L = {
     ["recordReport_OFFICER"] = "官员",
     ["recordReportTemplate"] = "%s「%s」与「%s」在%s交易%s%s",
     ["recordReportTitle"] = "===========交易通报===========",
-    ["recordReportMoneyGain"] = "收到 %s",
-    ["recordReportMoneyLose"] = "付出 %s",
+    ["recordReportMoneyGive"] = "交出 %s",
+    ["recordReportMoneyReceive"] = "收到 %s",
     ["recordReportMoneyUnitGold"] = "金",
     ["recordReportMoneyUnitSilver"] = "银",
     ["recordReportMoneyUnitCopper"] = "铜",

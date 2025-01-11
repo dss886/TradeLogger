@@ -25,7 +25,6 @@ BINDING_NAME_TRADELOGGER_TOGGLE = L["bindingNameToggle"];
 local DEFAULT_CONFIG = {
     ["enableTradeRecord"] = true,
     ["enableTradeConsoleLog"] = true,
-    ["enableTradeWhisper"] = true,
     ["enableMailMoneyChange"] = true,
 }
 
