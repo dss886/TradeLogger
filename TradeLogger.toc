@@ -10,6 +10,7 @@ Locales\zhCN.lua
 
 Utils\Logger.lua
 Utils\EventBus.lua
+Utils\StringUtils.lua
 
 Core.lua
 Options.lua

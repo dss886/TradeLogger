@@ -4,6 +4,7 @@ local L = Addon.L
 local Logger = Addon.Logger
 local EventBus = Addon.EventBus
 local Template = Addon.Template
+local StringUtils = Addon.StringUtils
 local tinsert = table.insert
 local tremove = table.remove
 
@@ -17,12 +18,22 @@ local TABLE_COLS = {
     { name = "giveItems",  width = 180 },
     { name = "receiveItems",  width = 180 },
 }
+local TABLE_CHANNELS = {
+    "SAY",
+    "YELL",
+    "PARTY",
+    "RAID",
+    "INSTANCE_CHAT",
+    "GUILD",
+    "OFFICER",
+}
 local TITLE_BAR_HEIGHT = 32
 local TABLE_ROW_HEIGHT = 32
 local TABLE_ROW_COUNT = 10
 local TABLE_ROW_CHECK_BTN_SIZE = 24
 local TABLE_DIVIDER = 1
 local ACTION_BAR_HEIGHT = 32
+local REPORT_SEND_CD = 0.3
 
 local Frame
 local Dirty = true
@@ -347,12 +358,8 @@ function Data.SetRowText(row, record, index)
     local tClassColorR, tClassColorG, tClassColorB = GetClassColor(record.targetClass)
     row.target:SetText(record.targetName)
     row.target:SetTextColor(tClassColorR, tClassColorG, tClassColorB, 1)
-    -- type
-    if record.type == 0 then
-        row.type:SetText(L["recordFrameTableTypeTrade"])
-    elseif record.type == 1 then
-        row.type:SetText(L["recordFrameTableTypeMail"])
-    end
+    -- type 0:交易，现在只支持0-交易
+    row.type:SetText(L["recordFrameTableTypeTrade"])
     -- location
     row.location:SetText(record.location)
     -- money
@@ -445,13 +452,29 @@ function Data.SetRowClick(row, record)
         end
         if button == "RightButton" then
             local count = #SelectedRecords
-            local menu = {
+            local reportSubMenuList = {}
+            for _, channel in ipairs(TABLE_CHANNELS) do
+                tinsert(reportSubMenuList, {
+                    text = L["recordReport_"..channel],
+                    func = function() Action.OnActionReportClick(channel, SelectedRecords) end,
+                    notCheckable = true,
+                })
+            end
+            local menuInfo = {
+                {
+                    text = L["recordReport"],
+                    menuList = reportSubMenuList,
+                    hasArrow = true,
+                    notCheckable = true,
+                },
                 {
                     text = L["recordFrameActionDeleteRecord"],
-                    func = function() Action.OnActionDeleteClick(count); end
+                    colorCode = "|cFFD64444",
+                    func = function() Action.OnActionDeleteClick(count); end,
+                    notCheckable = true,
                 },
             }
-            EasyMenu(menu, Frame.contextMenu, "cursor", 0, 0, "MENU")
+            EasyMenu(menuInfo, Frame.contextMenu, "cursor", 0, 0, "MENU")
         end
     end)
 end
@@ -475,20 +498,7 @@ function Data.GetRecordItemsDesc(items)
     if #items == 0 then
         return "-"
     end
-    local getItemWithCount = function(item)
-        if item.count > 1 then
-            return item.itemLink .. "x" .. item.count
-        else
-            return item.itemLink
-        end
-    end
-    local desc = ""
-    if #items > 0 then
-        for _, item in ipairs(items) do
-            desc = desc .. getItemWithCount(item)
-        end
-    end
-    return desc
+    return StringUtils.formatItemString(items)
 end
 
 ----------------------------------------
@@ -561,6 +571,25 @@ function Action.OnActionDeleteClick(count)
         hideOnEscape = true,
     }
     StaticPopup_Show("OnActionDeleteClickDialog")
+end
+
+function Action.OnActionReportClick(channel, records)
+    if #records == 0 then
+        return
+    end
+    local t = 0
+    SendChatMessage(L["recordReportTitle"], channel);
+    t = t + REPORT_SEND_CD
+    for i, record in ipairs(records) do
+        C_Timer.After(t, function()
+            local content = i..". "..StringUtils.getTradeReportString(record)
+            SendChatMessage(content, channel);
+        end)
+        t = t + REPORT_SEND_CD
+    end
+    C_Timer.After(t, function()
+        SendChatMessage(L["recordReportDivider"], channel);
+    end)
 end
 
 function Action.OnFrameShow()
