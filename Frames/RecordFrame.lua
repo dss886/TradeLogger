@@ -452,29 +452,38 @@ function Data.SetRowClick(row, record)
         end
         if button == "RightButton" then
             local count = #SelectedRecords
-            local reportSubMenuList = {}
-            for _, channel in ipairs(TABLE_CHANNELS) do
-                tinsert(reportSubMenuList, {
-                    text = L["recordReport_"..channel],
-                    func = function() Action.OnActionReportClick(channel, SelectedRecords) end,
-                    notCheckable = true,
-                })
-            end
-            local menuInfo = {
-                {
-                    text = L["recordReport"],
-                    menuList = reportSubMenuList,
-                    hasArrow = true,
-                    notCheckable = true,
-                },
-                {
-                    text = L["recordFrameActionDeleteRecord"],
-                    colorCode = "|cFFD64444",
-                    func = function() Action.OnActionDeleteClick(count); end,
-                    notCheckable = true,
-                },
-            }
-            EasyMenu(menuInfo, Frame.contextMenu, "cursor", 0, 0, "MENU")
+            UIDropDownMenu_Initialize(Frame.contextMenu, function(_, level, menuList)
+                if level == 1 then
+                    -- 通报按钮
+                    local reportMenu = UIDropDownMenu_CreateInfo()
+                    reportMenu.text = L["recordReport"]
+                    reportMenu.notCheckable = true
+                    reportMenu.hasArrow = true
+                    reportMenu.menuList = "report"
+                    UIDropDownMenu_AddButton(reportMenu)
+                    -- 删除按钮
+                    local deleteBtn = UIDropDownMenu_CreateInfo()
+                    deleteBtn.text = L["recordFrameActionDeleteRecord"]
+                    deleteBtn.colorCode = "|cFFD64444"
+                    deleteBtn.notCheckable = true
+                    deleteBtn.func = function()
+                        Action.OnActionDeleteClick(count)
+                    end
+                    UIDropDownMenu_AddButton(deleteBtn)
+                elseif level == 2 and menuList == "report" then
+                    -- 通报二级菜单
+                    for _, channel in ipairs(TABLE_CHANNELS) do
+                        local reportSubMenu = UIDropDownMenu_CreateInfo()
+                        reportSubMenu.text = L["recordReport_"..channel]
+                        reportSubMenu.notCheckable = true
+                        reportSubMenu.func = function()
+                            Action.OnActionReportClick(channel, SelectedRecords)
+                        end
+                        UIDropDownMenu_AddButton(reportSubMenu, level)
+                    end
+                end
+            end)
+            ToggleDropDownMenu(1, nil, Frame.contextMenu, "cursor", 3, -3)
         end
     end)
 end
