@@ -19,6 +19,22 @@
     "UIDropDownMenu_Initialize",
     "UIDropDownMenu_CreateInfo",
     "UIDropDownMenu_AddButton",
-    "ToggleDropDownMenu"
+    "ToggleDropDownMenu",
+    "RAID_CLASS_COLORS"
+],
+"Lua.runtime.version": "Lua 5.1",
+"Lua.runtime.builtin": {
+    "basic": "disable",
+    "debug": "disable",
+    "io": "disable",
+    "math": "disable",
+    "os": "disable",
+    "package": "disable",
+    "string": "disable",
+    "table": "disable",
+    "utf8": "disable"
+},
+"Lua.workspace.library": [
+    "~\\.vscode\\extensions\\ketho.wow-api-0.20.6\\Annotations\\Core"
 ]
 }

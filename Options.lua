@@ -23,6 +23,25 @@ end
 --             插件设置页面             --
 ----------------------------------------
 
+-- 由于CTM之后的设置页面使用了新的API，所以这里需要做一个兼容
+local InterfaceOptions_AddCategory = InterfaceOptions_AddCategory or function(frame, addOn, position)
+	frame.OnCommit = frame.okay
+	frame.OnDefault = frame.default
+	frame.OnRefresh = frame.refresh
+
+	if frame.parent then
+		local category = Settings.GetCategory(frame.parent)
+		local subcategory = Settings.RegisterCanvasLayoutSubcategory(category, frame, frame.name, frame.name)
+		subcategory.ID = frame.name
+		return subcategory, category
+	else
+		local category = Settings.RegisterCanvasLayoutCategory(frame, frame.name, frame.name)
+		category.ID = frame.name
+		Settings.RegisterAddOnCategory(category)
+		return category
+	end
+end
+
 local function createCheckbox(key)
     local config = TradeLoggerDB.config;
     local checkbox = CreateFrame("CheckButton", nil, Options, "InterfaceOptionsCheckButtonTemplate")
@@ -57,7 +76,7 @@ local function initOptions()
 
     enableTradeRecord:SetPoint("TOPLEFT", xStart, yStart)
     enableTradeConsoleLog:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 1)
-    enableMailMoneyChange:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 3)
+    enableMailMoneyChange:SetPoint("TOPLEFT", xStart + xSpace, yStart - ySpace * 2)
 end
 
 ----------------------------------------
