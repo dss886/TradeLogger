@@ -56,4 +56,6 @@ addon.L = {
     ["recordReportMoneyUnitSilver"] = "s",
     ["recordReportMoneyUnitCopper"] = "c",
     ["recordReportDivider"] = "==============================",
+    ["recordFrameActionFilter"] = "Filter:",
+    ["recordFrameActionCharacter"] = "All Characters",
 }

@@ -1,19 +1,16 @@
 local AddonName, Addon = ...
 
 local L = Addon.L
-local Logger = Addon.Logger
 local EventBus = Addon.EventBus
 local Template = Addon.Template
 local StringUtils = Addon.StringUtils
-local tinsert = table.insert
-local tremove = table.remove
 
 local TABLE_COLS = {
     { name = "serial", width = 32 },
     { name = "time",   width = 120 },
     { name = "target", width = 88 },
     { name = "type",   width = 48 },
-    { name = "location", width = 64 },
+    { name = "location", width = 120 },
     { name = "money",  width = 80 },
     { name = "giveItems",  width = 180 },
     { name = "receiveItems",  width = 180 },
@@ -40,7 +37,8 @@ local Dirty = true
 local CurPage = 1
 local CurRecords = {}
 local SelectedRecords = {}
-
+local RecordCharacterInfo = {}
+local CurCharacterInfo = { name = "", class = "" }
 local Data = {}
 local Action = {}
 local Builder = {}
@@ -221,6 +219,13 @@ function Builder.CreateActionBar(frame)
     actionBar:SetPoint("TOPRIGHT", frame.table, "BOTTOMRIGHT", 0, 0)
     actionBar:SetHeight(ACTION_BAR_HEIGHT)
 
+    -- character filter
+    local filterBtn = Template.CreatePlainButton(actionBar, 
+        L["recordFrameActionFilter"], ACTION_BAR_HEIGHT, Action.OnActionCharacterClick)
+    local characterBtn = Template.CreatePlainButton(actionBar, 
+        "", ACTION_BAR_HEIGHT, Action.OnActionCharacterClick)
+    filterBtn:Disable()
+
     -- pagination
     local preBtn = Template.CreatePlainButton(actionBar,
         L["recordFrameActionBtnPre"], ACTION_BAR_HEIGHT, Action.OnActionPreClick)
@@ -231,6 +236,8 @@ function Builder.CreateActionBar(frame)
     pageBtn:SetWidth(pageBtn:GetTextWidth() + 16 < ACTION_BAR_HEIGHT
         and ACTION_BAR_HEIGHT or pageBtn:GetTextWidth() + 16)
 
+    filterBtn:SetPoint("LEFT", actionBar, "LEFT", 0, 0)
+    characterBtn:SetPoint("LEFT", filterBtn, "RIGHT", 0, 0)
     nextBtn:SetPoint("RIGHT", actionBar, "RIGHT", 0, 0)
     pageBtn:SetPoint("RIGHT", nextBtn, "LEFT", -8, 0)
     preBtn:SetPoint("RIGHT", pageBtn, "LEFT", -8, 0)
@@ -238,10 +245,11 @@ function Builder.CreateActionBar(frame)
     -- 选中状态下的按钮
     local selectActionBtn = Template.CreatePlainButton(actionBar,
         L["Action.OnActionSelectClearClick"], ACTION_BAR_HEIGHT, Action.OnActionSelectClearClick)
-    selectActionBtn:SetPoint("LEFT", actionBar, "LEFT", 0, 0)
+    selectActionBtn:SetPoint("CENTER", actionBar, "CENTER", 0, 0)
     selectActionBtn:Hide()
 
     frame.actionBar = actionBar
+    frame.characterBtn = characterBtn
     frame.pageBtn = pageBtn
     frame.selectActionBtn = selectActionBtn
 end
@@ -273,11 +281,17 @@ end
 
 -- 根据目前的（排序、筛选、翻页等）条件刷新要显示的数据
 function Data.UpdateCurRecords()
-    -- TODO 过滤、排序
     CurRecords = {}
     local size = #TradeLoggerDB.tradeRecord
     for i = size, 1, -1 do
-        tinsert(CurRecords, TradeLoggerDB.tradeRecord[i])
+        if CurCharacterInfo.name ~= "" then
+            local nameWithRealm = TradeLoggerDB.tradeRecord[i].playerRealm .. "-" .. TradeLoggerDB.tradeRecord[i].playerName
+            if CurCharacterInfo.name == nameWithRealm then
+                table.insert(CurRecords, TradeLoggerDB.tradeRecord[i])
+            end
+        else
+            table.insert(CurRecords, TradeLoggerDB.tradeRecord[i])
+        end
     end
 end
 
@@ -293,14 +307,14 @@ end
 
 function Data.SelectRecord(record)
     if not Data.IsRecordSelected(record) then
-        tinsert(SelectedRecords, record)
+        table.insert(SelectedRecords, record)
     end
 end
 
 function Data.UnselectRecord(record)
     for i = #SelectedRecords, 1, -1 do
         if SelectedRecords[i].timestamp == record.timestamp then
-            tremove(SelectedRecords, i)
+            table.remove(SelectedRecords, i)
             return
         end
     end
@@ -503,6 +517,34 @@ function Data.UpdateSelectActionBtn()
     end
 end
 
+function Data.UpdateRealmAndPlayers()
+    -- 先遍历所有记录，获取所有的realm和player
+    local characterInfo = {}
+    local characterSet = {}
+    for _, record in ipairs(TradeLoggerDB.tradeRecord) do
+        local nameWithRealm = record.playerRealm .. "-" .. record.playerName
+        if not characterSet[nameWithRealm] then
+            characterSet[nameWithRealm] = true
+            characterInfo[#characterInfo + 1] = {
+                name = nameWithRealm,
+                class = record.playerClass,
+            }
+        end
+    end
+    table.sort(characterInfo, function(a, b) return a.name < b.name end)
+    RecordCharacterInfo = characterInfo
+    local nameStr, colorStr = "", "|cFFDDDDDD"
+    if CurCharacterInfo.name ~= "" and characterSet[CurCharacterInfo.name] then
+        nameStr = CurCharacterInfo.name
+        local _, _, _, color = GetClassColor(CurCharacterInfo.class)
+        colorStr = format("|c%s", color)
+    else
+        colorStr = L["recordFrameActionCharacter"]
+    end
+    Frame.characterBtn:SetText(colorStr .. nameStr)
+    Frame.characterBtn:SetWidth(Frame.characterBtn:GetTextWidth() + 16)
+end
+
 function Data.GetRecordItemsDesc(items)
     if #items == 0 then
         return "-"
@@ -548,6 +590,36 @@ function Action.OnActionSelectClearClick()
     Data.ShowTableData()
 end
 
+function Action.OnActionCharacterClick()
+    UIDropDownMenu_Initialize(Frame.contextMenu, function(_, _, _)
+        local all = UIDropDownMenu_CreateInfo()
+        all.text = "|cFFDDDDDD" .. L["recordFrameActionCharacter"]
+        all.notCheckable = true
+        all.func = function()
+            Action.OnActionCharacterSwitch({ name = "", class = "" })
+        end
+        UIDropDownMenu_AddButton(all)
+        for _, info in ipairs(RecordCharacterInfo) do
+            local _, _, _, color = GetClassColor(info.class)
+            local menu = UIDropDownMenu_CreateInfo()
+            menu.text = "|c" .. color .. info.name
+            menu.notCheckable = true
+            menu.func = function()
+                Action.OnActionCharacterSwitch(info)
+            end
+            UIDropDownMenu_AddButton(menu)
+        end
+    end)
+    ToggleDropDownMenu(1, nil, Frame.contextMenu, "cursor", 3, -3)
+end
+
+function Action.OnActionCharacterSwitch(info)
+    Dirty = true
+    CurCharacterInfo = info
+    Action.ToggleRecordFrame()
+    Action.ToggleRecordFrame()
+end
+
 function Action.OnActionDeleteClick(count)
     if #SelectedRecords ~= count then
         return
@@ -560,7 +632,7 @@ function Action.OnActionDeleteClick(count)
             for _, record in ipairs(SelectedRecords) do
                 for i = #TradeLoggerDB.tradeRecord, 1, -1 do
                     if TradeLoggerDB.tradeRecord[i].timestamp == record.timestamp then
-                        tremove(TradeLoggerDB.tradeRecord, i)
+                        table.remove(TradeLoggerDB.tradeRecord, i)
                         break
                     end
                 end
@@ -607,6 +679,7 @@ function Action.OnFrameShow()
     end
     CurPage = 1
     Data.ClearTableData()
+    Data.UpdateRealmAndPlayers()
     Data.UpdateCurRecords()
     Data.UpdatePagination()
     Data.UpdateSelectActionBtn()

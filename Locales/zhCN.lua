@@ -58,4 +58,6 @@ addon.L = {
     ["recordReportMoneyUnitSilver"] = "银",
     ["recordReportMoneyUnitCopper"] = "铜",
     ["recordReportDivider"] = "==============================",
+    ["recordFrameActionFilter"] = "筛选：",
+    ["recordFrameActionCharacter"] = "所有角色",
 }
